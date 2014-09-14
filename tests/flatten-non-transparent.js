@@ -29,13 +29,12 @@ sharp(INPUT_JPG).rotate().toFile(OUTPUT_2, function (error, info) {
   }
 
   console.log('\nJPEG auto-orient:', info);
+});
 
+sharp(INPUT_JPG).background(255, 128, 0).flatten().toFile(OUTPUT_2, function (error, info) {
+  if (error) {
+    throw error;
+  }
 
-  sharp(INPUT_JPG).background(255, 128, 0).flatten().toFile(OUTPUT_2, function (error, info) {
-    if (error) {
-      throw error;
-    }
-
-    console.log('\nJPEG flatten & resize:', info);
-  });
+  console.log('\nJPEG flatten & resize:', info);
 });
