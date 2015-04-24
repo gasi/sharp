@@ -20,6 +20,7 @@
   ],
   "description": "High performance Node.js module to resize JPEG, PNG, WebP and TIFF images using the libvips library",
   "scripts": {
+    "build-composite": "gcc -g test/unit/try211.c `pkg-config vips --cflags --libs` -o test/unit/try211",
     "test": "VIPS_WARNING=0 node ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- --slow=5000 --timeout=15000 ./test/unit/*.js",
     "test-win32-node": "node ./node_modules/mocha/bin/mocha --slow=5000 --timeout=15000 ./test/unit/*.js",
     "test-win32-iojs": "iojs ./node_modules/mocha/bin/mocha --slow=5000 --timeout=15000 ./test/unit/*.js"
