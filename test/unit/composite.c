@@ -1,6 +1,6 @@
 /* compile with:
  *
- *      gcc -g -Wall try211.c `pkg-config vips --cflags --libs`
+ *      gcc -g -Wall composite.c `pkg-config vips --cflags --libs`
  */
 
 #include <stdio.h>
