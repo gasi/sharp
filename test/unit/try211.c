@@ -23,7 +23,7 @@ main( int argc, char **argv )
 
   main_group = g_option_group_new( NULL, NULL, NULL, NULL, NULL );
   g_option_context_set_main_group( context, main_group );
-  vips_add_option_entries( main_group );
+  // vips_add_option_entries( main_group );
 
   if( !g_option_context_parse( context, &argc, &argv, &error ) ) {
     if( error ) {
