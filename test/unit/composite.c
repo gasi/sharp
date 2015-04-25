@@ -39,7 +39,6 @@ main( int argc, char **argv )
   if( !(in = vips_image_new_from_file( argv[1], NULL )) )
     vips_error_exit( NULL );
 
-  printf( "image width = %d\n", vips_image_get_width( in ) );
 
 
 
