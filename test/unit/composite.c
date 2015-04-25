@@ -13,7 +13,6 @@ main( int argc, char **argv )
   GOptionGroup *main_group;
   GError *error = NULL;
   VipsImage *in;
-  double mean;
   VipsImage *out;
 
   if( VIPS_INIT( argv[0] ) )
@@ -42,10 +41,7 @@ main( int argc, char **argv )
 
   printf( "image width = %d\n", vips_image_get_width( in ) );
 
-  if( vips_avg( in, &mean, NULL ) )
-    vips_error_exit( NULL );
 
-  printf( "mean pixel value = %g\n", mean );
 
   if( vips_invert( in, &out, NULL ) )
     vips_error_exit( NULL );
