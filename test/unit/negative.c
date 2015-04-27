@@ -197,7 +197,7 @@ main( int argc, char **argv )
   if( argc != 3 )
     vips_error_exit( "usage: %s infile outfile", argv[0] );
 
-  if( !(in = vips_image_new_from_file( argv[1] )) )
+  if( !(in = vips_image_new_from_file( argv[1], NULL )) )
     vips_error_exit( "unable to open" );
 
   if( negative( in, &out, "image_max", 128, NULL ) ) {
@@ -211,7 +211,7 @@ main( int argc, char **argv )
    */
   g_object_unref( in );
 
-  if( vips_image_write_to_file( out, argv[2] ) ) {
+  if( vips_image_write_to_file( out, argv[2], NULL ) ) {
     g_object_unref( out );
     vips_error_exit( "unable to write" );
   }
