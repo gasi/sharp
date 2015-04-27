@@ -20,11 +20,13 @@ main( int argc, char **argv )
 
   VipsImage *dstInput;
   VipsImage *dstRGB;
+  VipsImage *dstRGBPremultiplied;
   VipsImage *dstAlpha;
   VipsImage *dstAlphaNormalized;
 
   VipsImage *out;
   VipsImage *outRGB;
+  VipsImage *outRGBPremultiplied;
   VipsImage *outAlpha;
   VipsImage *outAlphaNormalized;
 
@@ -108,23 +110,37 @@ main( int argc, char **argv )
       vips_add( srcAlphaNormalized, t2, &outAlphaNormalized, NULL ) )
     vips_error_exit( NULL );
 
+  g_object_unref( t1 );
+  g_object_unref( t2 );
+
   //
   // Compute output RGB channels:
   //
+  // Wikipedia:
   // out_rgb = (src_rgb * src_a + dst_rgb * dst_a * (1 - src_a)) / out_a
-  //            ^^^^^^^^^^^^^^^
-  //                  t3
-  //                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  //                                            t4
-  //            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  //                                  t5
-  VipsImage *t3;
-  VipsImage *t4;
-  VipsImage *t5;
-  if ( vips_multiply( srcRGB, srcAlphaNormalized, &t3, NULL ) ||
-       vips_multiply( dstRGB, t2, &t4, NULL ) ||
-       vips_add( t3, t4, &t5, NULL ) ||
-       vips_divide( t5, outAlphaNormalized, &outRGB, NULL) )
+  //
+  // `vips_ifthenelse` with `blend=TRUE`: http://bit.ly/1KoSsga
+  // out = (cond / 255) * in1 + (1 - cond / 255) * in2
+  //
+  // Substitutions:
+  //
+  //     cond --> src_a
+  //     in1 --> src_rgb
+  //     in2 --> dst_rgb * dst_a (premultiplied destination RGB)
+  //
+  // Finally, manually divide by `out_a` to unpremultiply the RGB channels.
+  // Failing to do so results in darker than expected output with low
+  // opacity images.
+  //
+  if( vips_multiply( dstRGB, dstAlphaNormalized, &dstRGBPremultiplied, NULL ) )
+    vips_error_exit( NULL );
+
+  if( vips_ifthenelse( srcAlpha, srcRGB, dstRGBPremultiplied,
+      &outRGBPremultiplied, "blend", TRUE, NULL ) )
+    vips_error_exit( NULL );
+
+  // Unpremultiply RGB channels:
+  if( vips_divide( outRGBPremultiplied, outAlphaNormalized, &outRGB, NULL ) )
     vips_error_exit( NULL );
 
   if( vips_linear1( outAlphaNormalized, &outAlpha, 255.0, 0.0, NULL ) )
@@ -132,13 +148,6 @@ main( int argc, char **argv )
 
   if( vips_bandjoin2( outRGB, outAlpha, &out, NULL ) )
     vips_error_exit( NULL );
-
-  // Intermediate results:
-  g_object_unref( t1 );
-  g_object_unref( t2 );
-  g_object_unref( t3 );
-  g_object_unref( t4 );
-  g_object_unref( t5 );
 
   // Source
   g_object_unref( srcInput );
@@ -149,6 +158,7 @@ main( int argc, char **argv )
   // Destination
   g_object_unref( dstInput );
   g_object_unref( dstRGB );
+  g_object_unref( dstRGBPremultiplied );
   g_object_unref( dstAlpha );
   g_object_unref( dstAlphaNormalized );
 
@@ -159,6 +169,7 @@ main( int argc, char **argv )
   // Output
   g_object_unref( out );
   g_object_unref( outRGB );
+  g_object_unref( outRGBPremultiplied );
   g_object_unref( outAlpha );
   g_object_unref( outAlphaNormalized );
 
