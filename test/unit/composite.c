@@ -59,25 +59,26 @@ main( int argc, char **argv )
   if( argc != 4 )
     vips_error_exit( "usage: %s src dst out", programName );
 
+  // Load input images:
   if( !(srcInput = vips_image_new_from_file( srcPath, NULL )) )
     vips_error_exit( NULL );
 
   if( !(dstInput = vips_image_new_from_file( dstPath, NULL )) )
     vips_error_exit( NULL );
 
-  // Extract RGB bands for image 1
+  // Extract RGB bands for source image
   if( vips_extract_band( srcInput, &srcRGB, 0, "n", NUM_COLOR_BANDS, NULL ) )
     vips_error_exit( NULL );
 
-  // Extract RGB bands for image 2
+  // Extract RGB bands for destination image
   if( vips_extract_band( dstInput, &dstRGB, 0, "n", NUM_COLOR_BANDS, NULL ) )
     vips_error_exit( NULL );
 
-  // Extract alpha band for image 1
+  // Extract alpha band for source image
   if( vips_extract_band( srcInput, &srcAlpha, ALPHA_BAND_INDEX, NULL ) )
     vips_error_exit( NULL );
 
-  // Extract alpha band for image 2
+  // Extract alpha band for destination image
   if( vips_extract_band( dstInput, &dstAlpha, ALPHA_BAND_INDEX, NULL ) )
     vips_error_exit( NULL );
 
@@ -90,6 +91,7 @@ main( int argc, char **argv )
   printf("srcRGB->Bands: %d\n", srcRGB->Bands);
   printf("dstRGB->Bands: %d\n", dstRGB->Bands);
 
+  // Compute normalized input alpha channels:
   if( vips_linear1( srcAlpha, &srcAlphaNormalized, 1.0 / 255.0, 0.0, NULL ) )
     vips_error_exit( NULL );
 
