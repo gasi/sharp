@@ -23,7 +23,7 @@
     "build-composite": "gcc -g test/unit/composite.c `pkg-config vips --cflags --libs` -o test/unit/composite",
     "build-negative": "gcc -g test/unit/negative.c `pkg-config vips --cflags --libs` -o test/unit/negative",
     "test": "VIPS_WARNING=0 node ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- --slow=5000 --timeout=15000 ./test/unit/*.js",
-    "test-composite": "npm run build-composite && cd test/fixtures && ../unit/composite alpha-2.png alpha-1.png alpha-out-vips.png && open alpha-out-vips.png && cd -",
+    "test-composite": "npm run build-composite && cd test/fixtures && ../unit/composite alpha-layer-1-fill.png alpha-layer-0-background.png alpha-out-t1.png && ../unit/composite alpha-layer-2-ink.png alpha-out-t1.png alpha-layer-out-vips.png && rm alpha-out-t1.png && open alpha-layer-out-vips.png && cd - > /dev/null",
     "test-win32-node": "node ./node_modules/mocha/bin/mocha --slow=5000 --timeout=15000 ./test/unit/*.js",
     "test-win32-iojs": "iojs ./node_modules/mocha/bin/mocha --slow=5000 --timeout=15000 ./test/unit/*.js"
   },
