@@ -82,15 +82,6 @@ main( int argc, char **argv )
   if( vips_extract_band( dstInput, &dstAlpha, ALPHA_BAND_INDEX, NULL ) )
     vips_error_exit( NULL );
 
-  printf("src dimensions: %dx%d\n", vips_image_get_width(srcInput),
-    vips_image_get_height(srcInput));
-  printf("dst dimensions: %dx%d\n", vips_image_get_width(dstInput),
-    vips_image_get_height(dstInput));
-  printf("srcAlpha->Bands: %d\n", srcAlpha->Bands);
-  printf("dstAlpha->Bands: %d\n", dstAlpha->Bands);
-  printf("srcRGB->Bands: %d\n", srcRGB->Bands);
-  printf("dstRGB->Bands: %d\n", dstRGB->Bands);
-
   // Compute normalized input alpha channels:
   if( vips_linear1( srcAlpha, &srcAlphaNormalized, 1.0 / 255.0, 0.0, NULL ) )
     vips_error_exit( NULL );
