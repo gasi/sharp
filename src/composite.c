@@ -16,34 +16,35 @@ int Composite(VipsObject *context, VipsImage *src, VipsImage *dst,
   // These images will all be unreffed when context is unreffed:
   VipsImage **t = (VipsImage **) vips_object_local_array(context, 3);
 
+  // Extract RGB bands:
   VipsImage *srcRGB;
-  VipsImage *srcAlpha;
-  VipsImage *srcAlphaNormalized;
-
   VipsImage *dstRGB;
-  VipsImage *dstRGBPremultiplied;
-  VipsImage *dstAlpha;
-  VipsImage *dstAlphaNormalized;
-
-  VipsImage *outRGB;
-  VipsImage *outRGBPremultiplied;
-  VipsImage *outAlpha;
-  VipsImage *outAlphaNormalized;
-
-  // Extract RGB bands
   if (vips_extract_band(src, &srcRGB, 0, "n", NUM_COLOR_BANDS, NULL) ||
       vips_extract_band(dst, &dstRGB, 0, "n", NUM_COLOR_BANDS, NULL))
     return -1;
 
-  // Extract alpha bands
+  vips_object_local(context, srcRGB);
+  vips_object_local(context, dstRGB);
+
+  // Extract alpha bands:
+  VipsImage *srcAlpha;
+  VipsImage *dstAlpha;
   if (vips_extract_band(src, &srcAlpha, ALPHA_BAND_INDEX, NULL) ||
       vips_extract_band(dst, &dstAlpha, ALPHA_BAND_INDEX, NULL))
     return -1;
 
+  vips_object_local(context, srcAlpha);
+  vips_object_local(context, dstAlpha);
+
   // Compute normalized input alpha channels:
+  VipsImage *srcAlphaNormalized;
+  VipsImage *dstAlphaNormalized;
   if (vips_linear1(srcAlpha, &srcAlphaNormalized, 1.0 / 255.0, 0.0, NULL) ||
       vips_linear1(dstAlpha, &dstAlphaNormalized, 1.0 / 255.0, 0.0, NULL))
     return -1;
+
+  vips_object_local(context, srcAlphaNormalized);
+  vips_object_local(context, dstAlphaNormalized);
 
   //
   // Compute normalized output alpha channel:
@@ -57,10 +58,13 @@ int Composite(VipsObject *context, VipsImage *src, VipsImage *dst,
   //                            t[0]
   //                 ^^^^^^^^^^^^^^^^^^^
   //                        t[1]
+  VipsImage *outAlphaNormalized;
   if (vips_linear1(srcAlphaNormalized, &t[0], -1.0, 1.0, NULL) ||
       vips_multiply(dstAlphaNormalized, t[0], &t[1], NULL) ||
       vips_add(srcAlphaNormalized, t[1], &outAlphaNormalized, NULL))
     return -1;
+
+  vips_object_local(context, outAlphaNormalized);
 
   //
   // Compute output RGB channels:
@@ -81,47 +85,38 @@ int Composite(VipsObject *context, VipsImage *src, VipsImage *dst,
   // Failing to do so results in darker than expected output with low
   // opacity images.
   //
+  VipsImage *dstRGBPremultiplied;
   if (vips_multiply(dstRGB, dstAlphaNormalized, &dstRGBPremultiplied, NULL))
     return -1;
 
+  vips_object_local(context, dstRGBPremultiplied);
+
+  VipsImage *outRGBPremultiplied;
   if (vips_ifthenelse(srcAlpha, srcRGB, dstRGBPremultiplied,
       &outRGBPremultiplied, "blend", TRUE, NULL))
     return -1;
 
+  vips_object_local(context, outRGBPremultiplied);
+
   // Unpremultiply RGB channels:
+  VipsImage *outRGB;
   if (vips_divide(outRGBPremultiplied, outAlphaNormalized, &outRGB, NULL))
     return -1;
 
+  vips_object_local(context, outRGB);
+
   // Denormalize output alpha channel:
+  VipsImage *outAlpha;
   if (vips_linear1(outAlphaNormalized, &outAlpha, 255.0, 0.0, NULL))
     return -1;
+
+  vips_object_local(context, outAlpha);
 
   // Combine RGB and alpha channel into output image:
   if (vips_bandjoin2(outRGB, outAlpha, &t[2], NULL))
     return -1;
 
-  // Source
-  g_object_unref(srcRGB);
-  g_object_unref(srcAlpha);
-  g_object_unref(srcAlphaNormalized);
-
-  // Destination
-  g_object_unref(dstRGB);
-  g_object_unref(dstRGBPremultiplied);
-  g_object_unref(dstAlpha);
-  g_object_unref(dstAlphaNormalized);
-
-  // Output
-  g_object_unref(outRGB);
-  g_object_unref(outRGBPremultiplied);
-  g_object_unref(outAlpha);
-  g_object_unref(outAlphaNormalized);
-
-  /* Return a reference to the output image.
-   */
   // Return a reference to the output image:
-  /* Return a reference to the output image.
-   */
   g_object_ref(t[2]);
   *out = t[2];
 
