@@ -8,6 +8,7 @@
 #include "nan.h"
 
 #include "common.h"
+#include "composite.h"
 #include "resize.h"
 
 using v8::Handle;
@@ -81,6 +82,8 @@ struct ResizeBaton {
   int sharpenRadius;
   double sharpenFlat;
   double sharpenJagged;
+  bool hasOverlay;
+  std::string overlayPath;
   double gamma;
   bool greyscale;
   bool normalize;
@@ -593,7 +596,7 @@ class ResizeWorker : public NanAsyncWorker {
         }
         // Create background
         VipsArrayDouble *background;
-        if (baton->background[3] < 255.0) {
+        if (baton->background[3] < 255.0 || HasAlpha(image)) {
           background = vips_array_double_newv(
             4, baton->background[0], baton->background[1], baton->background[2], baton->background[3]
           );
@@ -789,6 +792,33 @@ class ResizeWorker : public NanAsyncWorker {
       }
     }
 #endif
+
+    // Composite with overlay, if present
+    if (baton->hasOverlay) {
+      VipsImage *overlayImage = NULL;
+      ImageType overlayImageType = ImageType::UNKNOWN;
+      overlayImageType = DetermineImageType(baton->overlayPath.c_str());
+      if (overlayImageType != ImageType::UNKNOWN) {
+        overlayImage = InitImage(baton->overlayPath.c_str(), baton->accessMethod);
+        if (overlayImage == NULL) {
+          (baton->err).append("Overlay input file has corrupt header");
+          overlayImageType = ImageType::UNKNOWN;
+        }
+      } else {
+        (baton->err).append("Overlay input file is of an unsupported image format");
+      }
+
+      if (overlayImage == NULL || overlayImageType == ImageType::UNKNOWN) {
+        return Error();
+      }
+
+      VipsImage *composited;
+      if (Composite(hook, overlayImage, image, &composited)) {
+        return Error();
+      }
+      vips_object_local(hook, composited);
+      image = composited;
+    }
 
     // Convert image to sRGB, if not already
     if (image->Type != VIPS_INTERPRETATION_sRGB) {
@@ -1175,6 +1205,9 @@ NAN_METHOD(resize) {
   for (int i = 0; i < 4; i++) {
     baton->background[i] = background->Get(i)->NumberValue();
   }
+  // Overlay options
+  baton->hasOverlay = options->Get(NanNew<String>("hasOverlay"))->BooleanValue();
+  baton->overlayPath = *String::Utf8Value(options->Get(NanNew<String>("overlayPath"))->ToString());
   // Resize options
   baton->withoutEnlargement = options->Get(NanNew<String>("withoutEnlargement"))->BooleanValue();
   baton->gravity = options->Get(NanNew<String>("gravity"))->Int32Value();

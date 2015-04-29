@@ -20,7 +20,15 @@
   ],
   "description": "High performance Node.js module to resize JPEG, PNG, WebP and TIFF images using the libvips library",
   "scripts": {
+    "build-composite": "gcc -g src/composite.c `pkg-config vips --cflags --libs` -o build/composite",
     "test": "VIPS_WARNING=0 node ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- --slow=5000 --timeout=15000 ./test/unit/*.js",
+    "test-compare": "OUT=alpha-layer-out-compare.png && cd test/fixtures && compare -fuzz 0.5% alpha-layer-out-im.png output.overlay-alpha-out-012-sharp.png $OUT 2> /dev/null || open $OUT && cd - > /dev/null",
+    "test-compare-low-alpha": "OUT=alpha-layer-out-low-alpha-compare.png && cd test/fixtures && compare -fuzz 0.5% alpha-layer-out-low-alpha-im.png alpha-layer-out-low-alpha-vips.png $OUT 2> /dev/null || open $OUT && cd - > /dev/null",
+    "test-composite": "OUT=alpha-layer-out-vips.png && npm run build-composite && cd test/fixtures && ../../build/composite alpha-layer-1-fill.png alpha-layer-0-background.png alpha-out-t1.png && ../../build/composite alpha-layer-2-ink.png alpha-out-t1.png $OUT && rm alpha-out-t1.png && open $OUT && cd - > /dev/null",
+    "test-composite-im": "OUT=alpha-layer-out-im.png && cd test/fixtures && composite alpha-layer-1-fill.png alpha-layer-0-background.png alpha-out-t1.png && composite alpha-layer-2-ink.png alpha-out-t1.png $OUT && rm alpha-out-t1.png && open $OUT && cd - > /dev/null",
+    "test-composite-low-alpha": "OUT=alpha-layer-out-low-alpha-vips.png && npm run build-composite && cd test/fixtures && ../../build/composite alpha-layer-2-ink-low-alpha.png alpha-layer-1-fill-low-alpha.png $OUT && open $OUT && cd - > /dev/null",
+    "test-composite-low-alpha-im": "OUT=alpha-layer-out-low-alpha-im.png && cd test/fixtures && composite alpha-layer-2-ink-low-alpha.png alpha-layer-1-fill-low-alpha.png $OUT && open $OUT && cd - > /dev/null",
+    "test-overlay": "OUT=test/fixtures/output.overlay-alpha-out-012-sharp.png && node-gyp configure && node-gyp build && rm -f $OUT && ./node_modules/.bin/mocha ./test/unit/overlay.js && open $OUT",
     "test-win32-node": "node ./node_modules/mocha/bin/mocha --slow=5000 --timeout=15000 ./test/unit/*.js",
     "test-win32-iojs": "iojs ./node_modules/mocha/bin/mocha --slow=5000 --timeout=15000 ./test/unit/*.js"
   },

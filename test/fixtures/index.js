@@ -21,6 +21,9 @@ module.exports = {
   inputPngWithTransparency: getPath('blackbug.png'), // public domain
   inputPngWithGreyAlpha: getPath('grey-8bit-alpha.png'),
   inputPngWithOneColor: getPath('2x2_fdcce6.png'),
+  inputPngOverlayLayer0: getPath('alpha-layer-0-background.png'),
+  inputPngOverlayLayer1: getPath('alpha-layer-1-fill.png'),
+  inputPngOverlayLayer2: getPath('alpha-layer-2-ink.png'),
 
   inputWebP: getPath('4.webp'), // http://www.gstatic.com/webp/gallery/4.webp
   inputTiff: getPath('G31D.TIF'), // http://www.fileformat.info/format/tiff/sample/e6c9a6e5253348f4aef6d17b534360ab/index.htm
