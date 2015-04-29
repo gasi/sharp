@@ -8,7 +8,7 @@
 
 /* Composite images `src` and `dst`.
  */
-int composite(VipsObject *context, VipsImage *src, VipsImage *dst,
+int Composite(VipsObject *context, VipsImage *src, VipsImage *dst,
   VipsImage **out) {
   const int ALPHA_BAND_INDEX = 3;
   const int NUM_COLOR_BANDS = 3;
@@ -173,7 +173,7 @@ int main(int argc, char **argv) {
   VipsObject *handle = VIPS_OBJECT(vips_image_new());
 
   VipsImage *out;
-  if (composite(handle, srcInput, dstInput, &out)) {
+  if (Composite(handle, srcInput, dstInput, &out)) {
     g_object_unref(handle);
     vips_error_exit(NULL);
   }

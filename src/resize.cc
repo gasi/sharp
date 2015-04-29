@@ -813,7 +813,7 @@ class ResizeWorker : public NanAsyncWorker {
       }
 
       VipsImage *composited;
-      if (composite(hook, overlayImage, image, &composited)) {
+      if (Composite(hook, overlayImage, image, &composited)) {
         return Error();
       }
       vips_object_local(hook, composited);

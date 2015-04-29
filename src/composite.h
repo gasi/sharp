@@ -8,7 +8,8 @@ extern "C" {
 /*
   Composite images `src` and `dst`.
 */
-int composite( VipsObject *context, VipsImage *src, VipsImage *dst, VipsImage **out );
+int Composite(VipsObject *context, VipsImage *src, VipsImage *dst,
+  VipsImage **out);
 
 #ifdef __cplusplus
 }
