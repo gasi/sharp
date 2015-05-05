@@ -517,13 +517,35 @@ class ResizeWorker : public NanAsyncWorker {
         return Error();
       }
       vips_object_local(hook, interpolator);
-      // Perform affine transformation
+
+      // Premultiply image before transformation:
+      VipsImage *imageAlpha;
+      VipsImage *imageAlphaNormalized;
+      VipsImage *imagePremultiplied;
+      if (vips_extract_band(image, &imageAlpha, 3, "n", 1, NULL) ||
+          vips_linear1(imageAlpha, &imageAlphaNormalized, 1.0 / 255.0, 0.0, NULL) ||
+          vips_multiply(image, imageAlphaNormalized, &imagePremultiplied, NULL)) {
+         return Error();
+      }
+      vips_object_local(hook, imageAlpha);
+      vips_object_local(hook, imageAlphaNormalized);
+      vips_object_local(hook, imagePremultiplied);
+
+      // Perform affine transformation:
       VipsImage *affined;
-      if (vips_affine(image, &affined, xresidual, 0.0, 0.0, yresidual, "interpolate", interpolator, NULL)) {
+      if (vips_affine(imagePremultiplied, &affined, xresidual, 0.0, 0.0, yresidual, "interpolate", interpolator, NULL)) {
         return Error();
       }
       vips_object_local(hook, affined);
-      image = affined;
+
+      // Unpremultiply image after transformation:
+      VipsImage *imageUnpremultiplied;
+      if (vips_divide(affined, imageAlphaNormalized, &imageUnpremultiplied, NULL)) {
+         return Error();
+      }
+      vips_object_local(hook, imageUnpremultiplied);
+
+      image = imageUnpremultiplied;
     }
 
     // Rotate
