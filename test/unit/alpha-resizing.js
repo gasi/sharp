@@ -7,7 +7,7 @@ sharp.cache(0);
 
 // Constants
 var INTERPOLATOR = 'bicubic';
-var METHOD = 'affine2';
+var METHOD = 'disablegaussianblur';
 var SCALE_FACTOR = 0.5;
 var INPUT_WIDTH = 2048;
 var INPUT_HEIGHT = 1536;
@@ -30,7 +30,7 @@ var process = function (tool, callback) {
 
     return function (callback) {
       sharp(inputFilename)
-        .resize(outputWidth, outputHeight)
+        .resize(outputWidth, outputHeight, {applyGaussianBlur: false})
         .interpolateWith(sharp.interpolator[INTERPOLATOR])
         .toFile(outputFilename, callback);
     };
