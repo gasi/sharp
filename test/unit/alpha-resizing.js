@@ -5,32 +5,32 @@ var fixtures = require('../fixtures');
 
 sharp.cache(0);
 
+var INTERPOLATOR = 'nearest';
+var METHOD = 'premultiply-rgb';
+
+var process = function (tool, width, height, callback) {
+    var inputFilename = fixtures.path('alpha-resizing-' + tool + '-' +
+      width + 'x' + height + '.png');
+    var outputWidth = Math.floor(width / 2);
+    var outputHeight = Math.floor(height / 2);
+    var outputFilename = fixtures.path('alpha-resizing-' + tool + '-out-' +
+      METHOD + '-' + outputWidth + 'x' + outputHeight + '-' +
+      INTERPOLATOR + '.png');
+
+    return function (callback) {
+      sharp(inputFilename)
+        .resize(outputWidth, outputHeight)
+        .interpolateWith(sharp.interpolator[INTERPOLATOR])
+        .toFile(outputFilename, callback);
+    };
+};
+
 describe('Resizing image with alpha channel', function() {
 
-  it('should not output black fringing around white details [Photoshop]', function(done) {
-    var width = 512;
-    var height = 512;
-    var interpolator = 'nearest';
-    var outFilename = fixtures.path('alpha-resizing-photoshop-out-premultiply-rgb-' +
-      width + 'x' + height + '-' + interpolator + '.png');
+  it('should not output black fringing around white details [Photoshop]',
+    process('photoshop', 1024, 1024));
 
-    sharp(fixtures.path('alpha-resizing-photoshop-1024x1024.png'))
-      .resize(width, height)
-      .interpolateWith(sharp.interpolator[interpolator])
-      .toFile(outFilename, done);
-  });
-
-  it('should not output black fringing around white details [Paper]', function(done) {
-    var width = 1024;
-    var height = 768;
-    var interpolator = 'nearest';
-    var outFilename = fixtures.path('alpha-resizing-paper-out-premultiply-rgb-' +
-      width + 'x' + height + '-' + interpolator + '.png');
-
-    sharp(fixtures.path('alpha-resizing-paper-2048x1536.png'))
-      .resize(width, height)
-      .interpolateWith(sharp.interpolator[interpolator])
-      .toFile(outFilename, done);
-  });
+  it('should not output black fringing around white details [Paper]',
+    process('paper', 2048, 1536));
 
 });
