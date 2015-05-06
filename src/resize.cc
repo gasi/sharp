@@ -72,6 +72,7 @@ struct ResizeBaton {
   int heightPost;
   int width;
   int height;
+  bool applyGaussianBlur;
   Canvas canvas;
   int gravity;
   std::string interpolator;
@@ -110,6 +111,7 @@ struct ResizeBaton {
     bufferOutLength(0),
     topOffsetPre(-1),
     topOffsetPost(-1),
+    applyGaussianBlur(true),
     canvas(Canvas::CROP),
     gravity(0),
     flatten(false),
@@ -480,37 +482,37 @@ class ResizeWorker : public NanAsyncWorker {
 
     // Use vips_affine with the remaining float part
     if (xresidual != 0.0 || yresidual != 0.0) {
-      // // Use average of x and y residuals to compute sigma for Gaussian blur
-      // double residual = (xresidual + yresidual) / 2.0;
-      // // Apply Gaussian blur before large affine reductions
-      // if (residual < 1.0) {
-      //   // Calculate standard deviation
-      //   double sigma = ((1.0 / residual) - 0.4) / 3.0;
-      //   if (sigma >= 0.3) {
-      //     // Create Gaussian function for standard deviation
-      //     VipsImage *gaussian;
-      //     if (vips_gaussmat(&gaussian, sigma, 0.2, "separable", TRUE, "integer", TRUE, NULL)) {
-      //       return Error();
-      //     }
-      //     vips_object_local(hook, gaussian);
-      //     // Sequential input requires a small linecache before use of convolution
-      //     if (baton->accessMethod == VIPS_ACCESS_SEQUENTIAL) {
-      //       VipsImage *lineCached;
-      //       if (vips_linecache(image, &lineCached, "access", VIPS_ACCESS_SEQUENTIAL, "tile_height", 1, "threaded", TRUE, NULL)) {
-      //         return Error();
-      //       }
-      //       vips_object_local(hook, lineCached);
-      //       image = lineCached;
-      //     }
-      //     // Apply Gaussian function
-      //     VipsImage *blurred;
-      //     if (vips_convsep(image, &blurred, gaussian, "precision", VIPS_PRECISION_INTEGER, NULL)) {
-      //       return Error();
-      //     }
-      //     vips_object_local(hook, blurred);
-      //     image = blurred;
-      //   }
-      // }
+      // Use average of x and y residuals to compute sigma for Gaussian blur
+      double residual = (xresidual + yresidual) / 2.0;
+      // Apply Gaussian blur before large affine reductions
+      if (residual < 1.0 && baton->applyGaussianBlur) {
+        // Calculate standard deviation
+        double sigma = ((1.0 / residual) - 0.4) / 3.0;
+        if (sigma >= 0.3) {
+          // Create Gaussian function for standard deviation
+          VipsImage *gaussian;
+          if (vips_gaussmat(&gaussian, sigma, 0.2, "separable", TRUE, "integer", TRUE, NULL)) {
+            return Error();
+          }
+          vips_object_local(hook, gaussian);
+          // Sequential input requires a small linecache before use of convolution
+          if (baton->accessMethod == VIPS_ACCESS_SEQUENTIAL) {
+            VipsImage *lineCached;
+            if (vips_linecache(image, &lineCached, "access", VIPS_ACCESS_SEQUENTIAL, "tile_height", 1, "threaded", TRUE, NULL)) {
+              return Error();
+            }
+            vips_object_local(hook, lineCached);
+            image = lineCached;
+          }
+          // Apply Gaussian function
+          VipsImage *blurred;
+          if (vips_convsep(image, &blurred, gaussian, "precision", VIPS_PRECISION_INTEGER, NULL)) {
+            return Error();
+          }
+          vips_object_local(hook, blurred);
+          image = blurred;
+        }
+      }
       // Create interpolator - "bilinear" (default), "bicubic" or "nohalo"
       VipsInterpolate *interpolator = vips_interpolate_new(baton->interpolator.c_str());
       if (interpolator == NULL) {
@@ -1212,6 +1214,7 @@ NAN_METHOD(resize) {
   // Output image dimensions
   baton->width = options->Get(NanNew<String>("width"))->Int32Value();
   baton->height = options->Get(NanNew<String>("height"))->Int32Value();
+  baton->applyGaussianBlur = options->Get(NanNew<String>("applyGaussianBlur"))->BooleanValue();
   // Canvas option
   Local<String> canvas = options->Get(NanNew<String>("canvas"))->ToString();
   if (canvas->Equals(NanNew<String>("crop"))) {
