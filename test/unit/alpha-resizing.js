@@ -5,17 +5,28 @@ var fixtures = require('../fixtures');
 
 sharp.cache(0);
 
-var INTERPOLATOR = 'nearest';
-var METHOD = 'premultiply-rgb';
+// Constants
+var INTERPOLATOR = 'bicubic';
+var METHOD = 'premultiply';
+var SCALE_FACTOR = 0.5;
+var INPUT_WIDTH = 2048;
+var INPUT_HEIGHT = 1536;
 
-var process = function (tool, width, height, callback) {
-    var inputFilename = fixtures.path('alpha-resizing-' + tool + '-' +
-      width + 'x' + height + '.png');
-    var outputWidth = Math.floor(width / 2);
-    var outputHeight = Math.floor(height / 2);
-    var outputFilename = fixtures.path('alpha-resizing-' + tool + '-out-' +
-      METHOD + '-' + outputWidth + 'x' + outputHeight + '-' +
-      INTERPOLATOR + '.png');
+// Helper
+var process = function (tool, callback) {
+    var inputFilename = fixtures.path([
+      'alpha-resizing-',
+      INPUT_WIDTH, 'x', INPUT_HEIGHT, '-',
+      tool, '.png'].join('')
+    );
+    var outputWidth = Math.floor(INPUT_WIDTH * SCALE_FACTOR);
+    var outputHeight = Math.floor(INPUT_HEIGHT * SCALE_FACTOR);
+    var outputFilename = fixtures.path([
+      'out.alpha-resizing-',
+      METHOD, '-', INTERPOLATOR, '-',
+      outputWidth, 'x', outputHeight, '-',
+      tool, '.png'].join('')
+    );
 
     return function (callback) {
       sharp(inputFilename)
@@ -25,15 +36,19 @@ var process = function (tool, width, height, callback) {
     };
 };
 
+// Test
 describe('Resizing image with alpha channel', function() {
 
   it('should not output black fringing around white details [Photoshop]',
-    process('photoshop', 1024, 1024));
+    process('photoshop'));
 
   it('should not output black fringing around white details [Pixelmator]',
-    process('pixelmator', 1024, 1024));
+    process('pixelmator'));
 
   it('should not output black fringing around white details [Paper]',
-    process('paper', 2048, 1536));
+    process('paper'));
+
+  it('should not output black fringing around white details [Paper saved in Photoshop]',
+    process('paper-ps'));
 
 });
