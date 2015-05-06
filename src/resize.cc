@@ -214,50 +214,50 @@ class ResizeWorker : public NanAsyncWorker {
     }
     vips_object_local(hook, image);
 
-    // Limit input images to a given number of pixels, where pixels = width * height
-    if (image->Xsize * image->Ysize > baton->limitInputPixels) {
-      (baton->err).append("Input image exceeds pixel limit");
-      return Error();
-    }
+    // // Limit input images to a given number of pixels, where pixels = width * height
+    // if (image->Xsize * image->Ysize > baton->limitInputPixels) {
+    //   (baton->err).append("Input image exceeds pixel limit");
+    //   return Error();
+    // }
 
-    // Calculate angle of rotation
+    // // Calculate angle of rotation
     Angle rotation;
     bool flip;
     std::tie(rotation, flip) = CalculateRotationAndFlip(baton->angle, image);
-    if (flip && !baton->flip) {
-      // Add flip operation due to EXIF mirroring
-      baton->flip = TRUE;
-    }
+    // if (flip && !baton->flip) {
+    //   // Add flip operation due to EXIF mirroring
+    //   baton->flip = TRUE;
+    // }
 
-    // Rotate pre-extract
-    if (baton->rotateBeforePreExtract && rotation != Angle::D0) {
-      VipsImage *rotated;
-      if (vips_rot(image, &rotated, static_cast<VipsAngle>(rotation), NULL)) {
-        return Error();
-      }
-      vips_object_local(hook, rotated);
-      image = rotated;
-    }
+    // // Rotate pre-extract
+    // if (baton->rotateBeforePreExtract && rotation != Angle::D0) {
+    //   VipsImage *rotated;
+    //   if (vips_rot(image, &rotated, static_cast<VipsAngle>(rotation), NULL)) {
+    //     return Error();
+    //   }
+    //   vips_object_local(hook, rotated);
+    //   image = rotated;
+    // }
 
-    // Pre extraction
-    if (baton->topOffsetPre != -1) {
-      VipsImage *extractedPre;
-      if (vips_extract_area(image, &extractedPre, baton->leftOffsetPre, baton->topOffsetPre, baton->widthPre, baton->heightPre, NULL)) {
-        return Error();
-      }
-      vips_object_local(hook, extractedPre);
-      image = extractedPre;
-    }
+    // // Pre extraction
+    // if (baton->topOffsetPre != -1) {
+    //   VipsImage *extractedPre;
+    //   if (vips_extract_area(image, &extractedPre, baton->leftOffsetPre, baton->topOffsetPre, baton->widthPre, baton->heightPre, NULL)) {
+    //     return Error();
+    //   }
+    //   vips_object_local(hook, extractedPre);
+    //   image = extractedPre;
+    // }
 
     // Get pre-resize image width and height
     int inputWidth = image->Xsize;
     int inputHeight = image->Ysize;
-    if (rotation == Angle::D90 || rotation == Angle::D270) {
-      // Swap input output width and height when rotating by 90 or 270 degrees
-      int swap = inputWidth;
-      inputWidth = inputHeight;
-      inputHeight = swap;
-    }
+    // if (rotation == Angle::D90 || rotation == Angle::D270) {
+    //   // Swap input output width and height when rotating by 90 or 270 degrees
+    //   int swap = inputWidth;
+    //   inputWidth = inputHeight;
+    //   inputHeight = swap;
+    // }
 
     // Get window size of interpolator, used for determining shrink vs affine
     int interpolatorWindowSize = InterpolatorWindowSize(baton->interpolator.c_str());
@@ -272,57 +272,57 @@ class ResizeWorker : public NanAsyncWorker {
       // Fixed width and height
       xfactor = static_cast<double>(inputWidth) / static_cast<double>(baton->width);
       yfactor = static_cast<double>(inputHeight) / static_cast<double>(baton->height);
-      switch (baton->canvas) {
-        case Canvas::CROP:
-          xfactor = std::min(xfactor, yfactor);
-          yfactor = xfactor;
-          break;
-        case Canvas::EMBED:
-          xfactor = std::max(xfactor, yfactor);
-          yfactor = xfactor;
-          break;
-        case Canvas::MAX:
-          if (xfactor > yfactor) {
-            baton->height = static_cast<int>(round(static_cast<double>(inputHeight) / xfactor));
-            yfactor = xfactor;
-          } else {
-            baton->width = static_cast<int>(round(static_cast<double>(inputWidth) / yfactor));
-            xfactor = yfactor;
-          }
-          break;
-        case Canvas::MIN:
-          if (xfactor < yfactor) {
-            baton->height = static_cast<int>(round(static_cast<double>(inputHeight) / xfactor));
-            yfactor = xfactor;
-          } else {
-            baton->width = static_cast<int>(round(static_cast<double>(inputWidth) / yfactor));
-            xfactor = yfactor;
-          }
-          break;
-        case Canvas::IGNORE_ASPECT:
-          // xfactor, yfactor OK!
-          break;
-      }
-    } else if (baton->width > 0) {
-      // Fixed width
-      xfactor = static_cast<double>(inputWidth) / static_cast<double>(baton->width);
-      if (baton->canvas == Canvas::IGNORE_ASPECT) {
-        baton->height = inputHeight;
-      } else {
-        // Auto height
-        yfactor = xfactor;
-        baton->height = static_cast<int>(floor(static_cast<double>(inputHeight) / yfactor));
-      }
-    } else if (baton->height > 0) {
-      // Fixed height
-      yfactor = static_cast<double>(inputHeight) / static_cast<double>(baton->height);
-      if (baton->canvas == Canvas::IGNORE_ASPECT) {
-        baton->width = inputWidth;
-      } else {
-        // Auto width
-        xfactor = yfactor;
-        baton->width = static_cast<int>(floor(static_cast<double>(inputWidth) / xfactor));
-      }
+    //   switch (baton->canvas) {
+    //     case Canvas::CROP:
+    //       xfactor = std::min(xfactor, yfactor);
+    //       yfactor = xfactor;
+    //       break;
+    //     case Canvas::EMBED:
+    //       xfactor = std::max(xfactor, yfactor);
+    //       yfactor = xfactor;
+    //       break;
+    //     case Canvas::MAX:
+    //       if (xfactor > yfactor) {
+    //         baton->height = static_cast<int>(round(static_cast<double>(inputHeight) / xfactor));
+    //         yfactor = xfactor;
+    //       } else {
+    //         baton->width = static_cast<int>(round(static_cast<double>(inputWidth) / yfactor));
+    //         xfactor = yfactor;
+    //       }
+    //       break;
+    //     case Canvas::MIN:
+    //       if (xfactor < yfactor) {
+    //         baton->height = static_cast<int>(round(static_cast<double>(inputHeight) / xfactor));
+    //         yfactor = xfactor;
+    //       } else {
+    //         baton->width = static_cast<int>(round(static_cast<double>(inputWidth) / yfactor));
+    //         xfactor = yfactor;
+    //       }
+    //       break;
+    //     case Canvas::IGNORE_ASPECT:
+    //       // xfactor, yfactor OK!
+    //       break;
+    //   }
+    // } else if (baton->width > 0) {
+    //   // Fixed width
+    //   xfactor = static_cast<double>(inputWidth) / static_cast<double>(baton->width);
+    //   if (baton->canvas == Canvas::IGNORE_ASPECT) {
+    //     baton->height = inputHeight;
+    //   } else {
+    //     // Auto height
+    //     yfactor = xfactor;
+    //     baton->height = static_cast<int>(floor(static_cast<double>(inputHeight) / yfactor));
+    //   }
+    // } else if (baton->height > 0) {
+    //   // Fixed height
+    //   yfactor = static_cast<double>(inputHeight) / static_cast<double>(baton->height);
+    //   if (baton->canvas == Canvas::IGNORE_ASPECT) {
+    //     baton->width = inputWidth;
+    //   } else {
+    //     // Auto width
+    //     xfactor = yfactor;
+    //     baton->width = static_cast<int>(floor(static_cast<double>(inputWidth) / xfactor));
+    //   }
     } else {
       // Identity transform
       baton->width = inputWidth;
@@ -337,180 +337,180 @@ class ResizeWorker : public NanAsyncWorker {
     double xresidual = CalculateResidual(xshrink, xfactor);
     double yresidual = CalculateResidual(yshrink, yfactor);
 
-    // Do not enlarge the output if the input width *or* height are already less than the required dimensions
-    if (baton->withoutEnlargement) {
-      if (inputWidth < baton->width || inputHeight < baton->height) {
-        xfactor = 1;
-        yfactor = 1;
-        xshrink = 1;
-        yshrink = 1;
-        xresidual = 0;
-        yresidual = 0;
-        baton->width = inputWidth;
-        baton->height = inputHeight;
-      }
-    }
+    // // Do not enlarge the output if the input width *or* height are already less than the required dimensions
+    // if (baton->withoutEnlargement) {
+    //   if (inputWidth < baton->width || inputHeight < baton->height) {
+    //     xfactor = 1;
+    //     yfactor = 1;
+    //     xshrink = 1;
+    //     yshrink = 1;
+    //     xresidual = 0;
+    //     yresidual = 0;
+    //     baton->width = inputWidth;
+    //     baton->height = inputHeight;
+    //   }
+    // }
 
-    // If integral x and y shrink are equal, try to use libjpeg shrink-on-load, but not when applying gamma correction or pre-resize extract
-    int shrink_on_load = 1;
-    if (xshrink == yshrink && inputImageType == ImageType::JPEG && xshrink >= 2 && baton->gamma == 0 && baton->topOffsetPre == -1) {
-      if (xshrink >= 8) {
-        xfactor = xfactor / 8;
-        yfactor = yfactor / 8;
-        shrink_on_load = 8;
-      } else if (xshrink >= 4) {
-        xfactor = xfactor / 4;
-        yfactor = yfactor / 4;
-        shrink_on_load = 4;
-      } else if (xshrink >= 2) {
-        xfactor = xfactor / 2;
-        yfactor = yfactor / 2;
-        shrink_on_load = 2;
-      }
-    }
-    if (shrink_on_load > 1) {
-      // Recalculate integral shrink and double residual
-      xfactor = std::max(xfactor, 1.0);
-      yfactor = std::max(yfactor, 1.0);
-      xshrink = CalculateShrink(xfactor, interpolatorWindowSize);
-      yshrink = CalculateShrink(yfactor, interpolatorWindowSize);
-      xresidual = CalculateResidual(xshrink, xfactor);
-      yresidual = CalculateResidual(yshrink, yfactor);
-      // Reload input using shrink-on-load
-      VipsImage *shrunkOnLoad;
-      if (baton->bufferInLength > 1) {
-        if (vips_jpegload_buffer(baton->bufferIn, baton->bufferInLength, &shrunkOnLoad, "shrink", shrink_on_load, NULL)) {
-          return Error();
-        }
-      } else {
-        if (vips_jpegload((baton->fileIn).c_str(), &shrunkOnLoad, "shrink", shrink_on_load, NULL)) {
-          return Error();
-        }
-      }
-      vips_object_local(hook, shrunkOnLoad);
-      image = shrunkOnLoad;
-    }
+    // // If integral x and y shrink are equal, try to use libjpeg shrink-on-load, but not when applying gamma correction or pre-resize extract
+    // int shrink_on_load = 1;
+    // if (xshrink == yshrink && inputImageType == ImageType::JPEG && xshrink >= 2 && baton->gamma == 0 && baton->topOffsetPre == -1) {
+    //   if (xshrink >= 8) {
+    //     xfactor = xfactor / 8;
+    //     yfactor = yfactor / 8;
+    //     shrink_on_load = 8;
+    //   } else if (xshrink >= 4) {
+    //     xfactor = xfactor / 4;
+    //     yfactor = yfactor / 4;
+    //     shrink_on_load = 4;
+    //   } else if (xshrink >= 2) {
+    //     xfactor = xfactor / 2;
+    //     yfactor = yfactor / 2;
+    //     shrink_on_load = 2;
+    //   }
+    // }
+    // if (shrink_on_load > 1) {
+    //   // Recalculate integral shrink and double residual
+    //   xfactor = std::max(xfactor, 1.0);
+    //   yfactor = std::max(yfactor, 1.0);
+    //   xshrink = CalculateShrink(xfactor, interpolatorWindowSize);
+    //   yshrink = CalculateShrink(yfactor, interpolatorWindowSize);
+    //   xresidual = CalculateResidual(xshrink, xfactor);
+    //   yresidual = CalculateResidual(yshrink, yfactor);
+    //   // Reload input using shrink-on-load
+    //   VipsImage *shrunkOnLoad;
+    //   if (baton->bufferInLength > 1) {
+    //     if (vips_jpegload_buffer(baton->bufferIn, baton->bufferInLength, &shrunkOnLoad, "shrink", shrink_on_load, NULL)) {
+    //       return Error();
+    //     }
+    //   } else {
+    //     if (vips_jpegload((baton->fileIn).c_str(), &shrunkOnLoad, "shrink", shrink_on_load, NULL)) {
+    //       return Error();
+    //     }
+    //   }
+    //   vips_object_local(hook, shrunkOnLoad);
+    //   image = shrunkOnLoad;
+    // }
 
-    // Ensure we're using a device-independent colour space
-    if (HasProfile(image)) {
-      // Convert to sRGB using embedded profile
-      VipsImage *transformed;
-      if (!vips_icc_transform(image, &transformed, srgbProfile.c_str(), "embedded", TRUE, NULL)) {
-        // Embedded profile can fail, so only update references on success
-        vips_object_local(hook, transformed);
-        image = transformed;
-      }
-    } else if (image->Type == VIPS_INTERPRETATION_CMYK) {
-      // Convert to sRGB using default "USWebCoatedSWOP" CMYK profile
-      std::string cmykProfile = baton->iccProfilePath + "USWebCoatedSWOP.icc";
-      VipsImage *transformed;
-      if (vips_icc_transform(image, &transformed, srgbProfile.c_str(), "input_profile", cmykProfile.c_str(), NULL)) {
-        return Error();
-      }
-      vips_object_local(hook, transformed);
-      image = transformed;
-    }
+    // // Ensure we're using a device-independent colour space
+    // if (HasProfile(image)) {
+    //   // Convert to sRGB using embedded profile
+    //   VipsImage *transformed;
+    //   if (!vips_icc_transform(image, &transformed, srgbProfile.c_str(), "embedded", TRUE, NULL)) {
+    //     // Embedded profile can fail, so only update references on success
+    //     vips_object_local(hook, transformed);
+    //     image = transformed;
+    //   }
+    // } else if (image->Type == VIPS_INTERPRETATION_CMYK) {
+    //   // Convert to sRGB using default "USWebCoatedSWOP" CMYK profile
+    //   std::string cmykProfile = baton->iccProfilePath + "USWebCoatedSWOP.icc";
+    //   VipsImage *transformed;
+    //   if (vips_icc_transform(image, &transformed, srgbProfile.c_str(), "input_profile", cmykProfile.c_str(), NULL)) {
+    //     return Error();
+    //   }
+    //   vips_object_local(hook, transformed);
+    //   image = transformed;
+    // }
 
-    // Flatten image to remove alpha channel
-    if (baton->flatten && HasAlpha(image)) {
-      // Background colour
-      VipsArrayDouble *background = vips_array_double_newv(
-        3, // Ignore alpha channel as we're about to remove it
-        baton->background[0],
-        baton->background[1],
-        baton->background[2]
-      );
-      VipsImage *flattened;
-      if (vips_flatten(image, &flattened, "background", background, NULL)) {
-        vips_area_unref(reinterpret_cast<VipsArea*>(background));
-        return Error();
-      }
-      vips_area_unref(reinterpret_cast<VipsArea*>(background));
-      vips_object_local(hook, flattened);
-      image = flattened;
-    }
+    // // Flatten image to remove alpha channel
+    // if (baton->flatten && HasAlpha(image)) {
+    //   // Background colour
+    //   VipsArrayDouble *background = vips_array_double_newv(
+    //     3, // Ignore alpha channel as we're about to remove it
+    //     baton->background[0],
+    //     baton->background[1],
+    //     baton->background[2]
+    //   );
+    //   VipsImage *flattened;
+    //   if (vips_flatten(image, &flattened, "background", background, NULL)) {
+    //     vips_area_unref(reinterpret_cast<VipsArea*>(background));
+    //     return Error();
+    //   }
+    //   vips_area_unref(reinterpret_cast<VipsArea*>(background));
+    //   vips_object_local(hook, flattened);
+    //   image = flattened;
+    // }
 
-    // Gamma encoding (darken)
-    if (baton->gamma >= 1 && baton->gamma <= 3) {
-      VipsImage *gammaEncoded;
-      if (vips_gamma(image, &gammaEncoded, "exponent", 1.0 / baton->gamma, NULL)) {
-        return Error();
-      }
-      vips_object_local(hook, gammaEncoded);
-      image = gammaEncoded;
-    }
+    // // Gamma encoding (darken)
+    // if (baton->gamma >= 1 && baton->gamma <= 3) {
+    //   VipsImage *gammaEncoded;
+    //   if (vips_gamma(image, &gammaEncoded, "exponent", 1.0 / baton->gamma, NULL)) {
+    //     return Error();
+    //   }
+    //   vips_object_local(hook, gammaEncoded);
+    //   image = gammaEncoded;
+    // }
 
-    // Convert to greyscale (linear, therefore after gamma encoding, if any)
-    if (baton->greyscale) {
-      VipsImage *greyscale;
-      if (vips_colourspace(image, &greyscale, VIPS_INTERPRETATION_B_W, NULL)) {
-        return Error();
-      }
-      vips_object_local(hook, greyscale);
-      image = greyscale;
-    }
+    // // Convert to greyscale (linear, therefore after gamma encoding, if any)
+    // if (baton->greyscale) {
+    //   VipsImage *greyscale;
+    //   if (vips_colourspace(image, &greyscale, VIPS_INTERPRETATION_B_W, NULL)) {
+    //     return Error();
+    //   }
+    //   vips_object_local(hook, greyscale);
+    //   image = greyscale;
+    // }
 
-    if (xshrink > 1 || yshrink > 1) {
-      VipsImage *shrunk;
-      // Use vips_shrink with the integral reduction
-      if (vips_shrink(image, &shrunk, xshrink, yshrink, NULL)) {
-        return Error();
-      }
-      vips_object_local(hook, shrunk);
-      image = shrunk;
-      // Recalculate residual float based on dimensions of required vs shrunk images
-      int shrunkWidth = shrunk->Xsize;
-      int shrunkHeight = shrunk->Ysize;
-      if (rotation == Angle::D90 || rotation == Angle::D270) {
-        // Swap input output width and height when rotating by 90 or 270 degrees
-        int swap = shrunkWidth;
-        shrunkWidth = shrunkHeight;
-        shrunkHeight = swap;
-      }
-      xresidual = static_cast<double>(baton->width) / static_cast<double>(shrunkWidth);
-      yresidual = static_cast<double>(baton->height) / static_cast<double>(shrunkHeight);
-      if (baton->canvas == Canvas::EMBED) {
-        xresidual = std::min(xresidual, yresidual);
-        yresidual = xresidual;
-      } else if (baton->canvas != Canvas::IGNORE_ASPECT) {
-        xresidual = std::max(xresidual, yresidual);
-        yresidual = xresidual;
-      }
-    }
+    // if (xshrink > 1 || yshrink > 1) {
+    //   VipsImage *shrunk;
+    //   // Use vips_shrink with the integral reduction
+    //   if (vips_shrink(image, &shrunk, xshrink, yshrink, NULL)) {
+    //     return Error();
+    //   }
+    //   vips_object_local(hook, shrunk);
+    //   image = shrunk;
+    //   // Recalculate residual float based on dimensions of required vs shrunk images
+    //   int shrunkWidth = shrunk->Xsize;
+    //   int shrunkHeight = shrunk->Ysize;
+    //   if (rotation == Angle::D90 || rotation == Angle::D270) {
+    //     // Swap input output width and height when rotating by 90 or 270 degrees
+    //     int swap = shrunkWidth;
+    //     shrunkWidth = shrunkHeight;
+    //     shrunkHeight = swap;
+    //   }
+    //   xresidual = static_cast<double>(baton->width) / static_cast<double>(shrunkWidth);
+    //   yresidual = static_cast<double>(baton->height) / static_cast<double>(shrunkHeight);
+    //   if (baton->canvas == Canvas::EMBED) {
+    //     xresidual = std::min(xresidual, yresidual);
+    //     yresidual = xresidual;
+    //   } else if (baton->canvas != Canvas::IGNORE_ASPECT) {
+    //     xresidual = std::max(xresidual, yresidual);
+    //     yresidual = xresidual;
+    //   }
+    // }
 
     // Use vips_affine with the remaining float part
     if (xresidual != 0.0 || yresidual != 0.0) {
-      // Use average of x and y residuals to compute sigma for Gaussian blur
-      double residual = (xresidual + yresidual) / 2.0;
-      // Apply Gaussian blur before large affine reductions
-      if (residual < 1.0) {
-        // Calculate standard deviation
-        double sigma = ((1.0 / residual) - 0.4) / 3.0;
-        if (sigma >= 0.3) {
-          // Create Gaussian function for standard deviation
-          VipsImage *gaussian;
-          if (vips_gaussmat(&gaussian, sigma, 0.2, "separable", TRUE, "integer", TRUE, NULL)) {
-            return Error();
-          }
-          vips_object_local(hook, gaussian);
-          // Sequential input requires a small linecache before use of convolution
-          if (baton->accessMethod == VIPS_ACCESS_SEQUENTIAL) {
-            VipsImage *lineCached;
-            if (vips_linecache(image, &lineCached, "access", VIPS_ACCESS_SEQUENTIAL, "tile_height", 1, "threaded", TRUE, NULL)) {
-              return Error();
-            }
-            vips_object_local(hook, lineCached);
-            image = lineCached;
-          }
-          // Apply Gaussian function
-          VipsImage *blurred;
-          if (vips_convsep(image, &blurred, gaussian, "precision", VIPS_PRECISION_INTEGER, NULL)) {
-            return Error();
-          }
-          vips_object_local(hook, blurred);
-          image = blurred;
-        }
-      }
+      // // Use average of x and y residuals to compute sigma for Gaussian blur
+      // double residual = (xresidual + yresidual) / 2.0;
+      // // Apply Gaussian blur before large affine reductions
+      // if (residual < 1.0) {
+      //   // Calculate standard deviation
+      //   double sigma = ((1.0 / residual) - 0.4) / 3.0;
+      //   if (sigma >= 0.3) {
+      //     // Create Gaussian function for standard deviation
+      //     VipsImage *gaussian;
+      //     if (vips_gaussmat(&gaussian, sigma, 0.2, "separable", TRUE, "integer", TRUE, NULL)) {
+      //       return Error();
+      //     }
+      //     vips_object_local(hook, gaussian);
+      //     // Sequential input requires a small linecache before use of convolution
+      //     if (baton->accessMethod == VIPS_ACCESS_SEQUENTIAL) {
+      //       VipsImage *lineCached;
+      //       if (vips_linecache(image, &lineCached, "access", VIPS_ACCESS_SEQUENTIAL, "tile_height", 1, "threaded", TRUE, NULL)) {
+      //         return Error();
+      //       }
+      //       vips_object_local(hook, lineCached);
+      //       image = lineCached;
+      //     }
+      //     // Apply Gaussian function
+      //     VipsImage *blurred;
+      //     if (vips_convsep(image, &blurred, gaussian, "precision", VIPS_PRECISION_INTEGER, NULL)) {
+      //       return Error();
+      //     }
+      //     vips_object_local(hook, blurred);
+      //     image = blurred;
+      //   }
+      // }
       // Create interpolator - "bilinear" (default), "bicubic" or "nohalo"
       VipsInterpolate *interpolator = vips_interpolate_new(baton->interpolator.c_str());
       if (interpolator == NULL) {
