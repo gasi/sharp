@@ -548,19 +548,19 @@ class ResizeWorker : public NanAsyncWorker {
       VipsImage *imageRGBPremultipliedTransformed;
       VipsImage *imageAlphaTransformed;
       VipsImage *imageAlphaNormalizedTransformed;
-      VipsImage *imageRGBUnpremultipliedTransformed;
+      // VipsImage *imageRGBUnpremultipliedTransformed;
       VipsImage *imageUnpremultiplied;
       if (vips_extract_band(imagePremultipliedTransformed, &imageRGBPremultipliedTransformed, 0, "n", 3, NULL) ||
           vips_extract_band(imagePremultipliedTransformed, &imageAlphaTransformed, 3, "n", 1, NULL) ||
           vips_linear1(imageAlphaTransformed, &imageAlphaNormalizedTransformed, 1.0 / 255.0, 0.0, NULL) ||
-          vips_divide(imageRGBPremultipliedTransformed, imageAlphaNormalizedTransformed, &imageRGBUnpremultipliedTransformed, NULL) ||
-          vips_bandjoin2(imageRGBUnpremultipliedTransformed, imageAlphaTransformed, &imageUnpremultiplied, NULL)) {
+          // vips_divide(imageRGBPremultipliedTransformed, imageAlphaNormalizedTransformed, &imageRGBUnpremultipliedTransformed, NULL) ||
+          vips_bandjoin2(imageRGBPremultipliedTransformed, imageAlphaTransformed, &imageUnpremultiplied, NULL)) {
          return Error();
       }
       vips_object_local(hook, imageRGBPremultipliedTransformed);
       vips_object_local(hook, imageAlphaTransformed);
       vips_object_local(hook, imageAlphaNormalizedTransformed);
-      vips_object_local(hook, imageRGBUnpremultipliedTransformed);
+      // vips_object_local(hook, imageRGBUnpremultipliedTransformed);
       vips_object_local(hook, imageUnpremultiplied);
 
       image = imageUnpremultiplied;

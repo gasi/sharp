@@ -11,7 +11,7 @@ describe('Resizing image with alpha channel', function() {
     var width = 512;
     var height = 512;
     var interpolator = 'nearest';
-    var outFilename =  fixtures.path('alpha-resizing-photoshop-out-premultiply-rgb-' +
+    var outFilename =  fixtures.path('alpha-resizing-photoshop-out-unpremultiply-only-rgb-' +
       width + 'x' + height + '-' + interpolator + '.png');
 
     sharp(fixtures.path('alpha-resizing-photoshop-1024x1024.png'))
@@ -24,7 +24,7 @@ describe('Resizing image with alpha channel', function() {
     var width = 1024;
     var height = 768;
     var interpolator = 'nearest';
-    var outFilename = fixtures.path('alpha-resizing-paper-out-premultiply-rgb-' +
+    var outFilename = fixtures.path('alpha-resizing-paper-out-unpremultiply-only-rgb-' +
       width + 'x' + height + '-' + interpolator + '.png');
 
     sharp(fixtures.path('alpha-resizing-paper-2048x1536.png'))
