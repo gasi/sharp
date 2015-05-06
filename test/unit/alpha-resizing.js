@@ -30,6 +30,9 @@ describe('Resizing image with alpha channel', function() {
   it('should not output black fringing around white details [Photoshop]',
     process('photoshop', 1024, 1024));
 
+  it('should not output black fringing around white details [Pixelmator]',
+    process('pixelmator', 1024, 1024));
+
   it('should not output black fringing around white details [Paper]',
     process('paper', 2048, 1536));
 
