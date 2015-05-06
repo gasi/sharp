@@ -7,7 +7,7 @@ sharp.cache(0);
 
 // Constants
 var INTERPOLATOR = 'bicubic';
-var METHOD = 'affine';
+var METHOD = 'affine2';
 var SCALE_FACTOR = 0.5;
 var INPUT_WIDTH = 2048;
 var INPUT_HEIGHT = 1536;
