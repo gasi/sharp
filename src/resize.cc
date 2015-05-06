@@ -518,28 +518,28 @@ class ResizeWorker : public NanAsyncWorker {
       }
       vips_object_local(hook, interpolator);
 
-      // Premultiply image before transformation:
-      VipsImage *imageRGB;
-      VipsImage *imageAlpha;
-      VipsImage *imageAlphaNormalized;
-      VipsImage *imageRGBPremultiplied;
-      VipsImage *imagePremultiplied;
-      if (vips_extract_band(image, &imageRGB, 0, "n", 3, NULL) ||
-          vips_extract_band(image, &imageAlpha, 3, "n", 1, NULL) ||
-          vips_linear1(imageAlpha, &imageAlphaNormalized, 1.0 / 255.0, 0.0, NULL) ||
-          vips_multiply(imageRGB, imageAlphaNormalized, &imageRGBPremultiplied, NULL) ||
-          vips_bandjoin2(imageRGBPremultiplied, imageAlpha, &imagePremultiplied, NULL)) {
-         return Error();
-      }
-      vips_object_local(hook, imageRGB);
-      vips_object_local(hook, imageAlpha);
-      vips_object_local(hook, imageAlphaNormalized);
-      vips_object_local(hook, imageRGBPremultiplied);
-      vips_object_local(hook, imagePremultiplied);
+      // // Premultiply image before transformation:
+      // VipsImage *imageRGB;
+      // VipsImage *imageAlpha;
+      // VipsImage *imageAlphaNormalized;
+      // VipsImage *imageRGBPremultiplied;
+      // VipsImage *imagePremultiplied;
+      // if (vips_extract_band(image, &imageRGB, 0, "n", 3, NULL) ||
+      //     vips_extract_band(image, &imageAlpha, 3, "n", 1, NULL) ||
+      //     vips_linear1(imageAlpha, &imageAlphaNormalized, 1.0 / 255.0, 0.0, NULL) ||
+      //     vips_multiply(imageRGB, imageAlphaNormalized, &imageRGBPremultiplied, NULL) ||
+      //     vips_bandjoin2(imageRGBPremultiplied, imageAlpha, &imagePremultiplied, NULL)) {
+      //    return Error();
+      // }
+      // vips_object_local(hook, imageRGB);
+      // vips_object_local(hook, imageAlpha);
+      // vips_object_local(hook, imageAlphaNormalized);
+      // vips_object_local(hook, imageRGBPremultiplied);
+      // vips_object_local(hook, imagePremultiplied);
 
       // Perform affine transformation:
       VipsImage *imagePremultipliedTransformed;
-      if (vips_affine(imagePremultiplied, &imagePremultipliedTransformed, xresidual, 0.0, 0.0, yresidual, "interpolate", interpolator, NULL)) {
+      if (vips_affine(image, &imagePremultipliedTransformed, xresidual, 0.0, 0.0, yresidual, "interpolate", interpolator, NULL)) {
         return Error();
       }
       vips_object_local(hook, imagePremultipliedTransformed);
@@ -548,19 +548,19 @@ class ResizeWorker : public NanAsyncWorker {
       VipsImage *imageRGBPremultipliedTransformed;
       VipsImage *imageAlphaTransformed;
       VipsImage *imageAlphaNormalizedTransformed;
-      // VipsImage *imageRGBUnpremultipliedTransformed;
+      VipsImage *imageRGBUnpremultipliedTransformed;
       VipsImage *imageUnpremultiplied;
       if (vips_extract_band(imagePremultipliedTransformed, &imageRGBPremultipliedTransformed, 0, "n", 3, NULL) ||
           vips_extract_band(imagePremultipliedTransformed, &imageAlphaTransformed, 3, "n", 1, NULL) ||
           vips_linear1(imageAlphaTransformed, &imageAlphaNormalizedTransformed, 1.0 / 255.0, 0.0, NULL) ||
-          // vips_divide(imageRGBPremultipliedTransformed, imageAlphaNormalizedTransformed, &imageRGBUnpremultipliedTransformed, NULL) ||
-          vips_bandjoin2(imageRGBPremultipliedTransformed, imageAlphaTransformed, &imageUnpremultiplied, NULL)) {
+          vips_divide(imageRGBPremultipliedTransformed, imageAlphaNormalizedTransformed, &imageRGBUnpremultipliedTransformed, NULL) ||
+          vips_bandjoin2(imageRGBUnpremultipliedTransformed, imageAlphaTransformed, &imageUnpremultiplied, NULL)) {
          return Error();
       }
       vips_object_local(hook, imageRGBPremultipliedTransformed);
       vips_object_local(hook, imageAlphaTransformed);
       vips_object_local(hook, imageAlphaNormalizedTransformed);
-      // vips_object_local(hook, imageRGBUnpremultipliedTransformed);
+      vips_object_local(hook, imageRGBUnpremultipliedTransformed);
       vips_object_local(hook, imageUnpremultiplied);
 
       image = imageUnpremultiplied;
