@@ -519,7 +519,7 @@ class ResizeWorker : public NanAsyncWorker {
       vips_object_local(hook, interpolator);
 
       // Switch for controlling behavior
-      const bool PREMULTIPLY_UNPREMULTIPLY_ENABLED = TRUE;
+      const bool PREMULTIPLY_UNPREMULTIPLY_ENABLED = FALSE;
 
       if (PREMULTIPLY_UNPREMULTIPLY_ENABLED) {
         // Premultiply image before transformation:
