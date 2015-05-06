@@ -518,28 +518,28 @@ class ResizeWorker : public NanAsyncWorker {
       }
       vips_object_local(hook, interpolator);
 
-      // // Premultiply image before transformation:
-      // VipsImage *imageRGB;
-      // VipsImage *imageAlpha;
-      // VipsImage *imageAlphaNormalized;
-      // VipsImage *imageRGBPremultiplied;
-      // VipsImage *imagePremultiplied;
-      // if (vips_extract_band(image, &imageRGB, 0, "n", 3, NULL) ||
-      //     vips_extract_band(image, &imageAlpha, 3, "n", 1, NULL) ||
-      //     vips_linear1(imageAlpha, &imageAlphaNormalized, 1.0 / 255.0, 0.0, NULL) ||
-      //     vips_multiply(imageRGB, imageAlphaNormalized, &imageRGBPremultiplied, NULL) ||
-      //     vips_bandjoin2(imageRGBPremultiplied, imageAlpha, &imagePremultiplied, NULL)) {
-      //    return Error();
-      // }
-      // vips_object_local(hook, imageRGB);
-      // vips_object_local(hook, imageAlpha);
-      // vips_object_local(hook, imageAlphaNormalized);
-      // vips_object_local(hook, imageRGBPremultiplied);
-      // vips_object_local(hook, imagePremultiplied);
+      // Premultiply image before transformation:
+      VipsImage *imageRGB;
+      VipsImage *imageAlpha;
+      VipsImage *imageAlphaNormalized;
+      VipsImage *imageRGBPremultiplied;
+      VipsImage *imagePremultiplied;
+      if (vips_extract_band(image, &imageRGB, 0, "n", 3, NULL) ||
+          vips_extract_band(image, &imageAlpha, 3, "n", 1, NULL) ||
+          vips_linear1(imageAlpha, &imageAlphaNormalized, 1.0 / 255.0, 0.0, NULL) ||
+          vips_multiply(imageRGB, imageAlphaNormalized, &imageRGBPremultiplied, NULL) ||
+          vips_bandjoin2(imageRGBPremultiplied, imageAlpha, &imagePremultiplied, NULL)) {
+         return Error();
+      }
+      vips_object_local(hook, imageRGB);
+      vips_object_local(hook, imageAlpha);
+      vips_object_local(hook, imageAlphaNormalized);
+      vips_object_local(hook, imageRGBPremultiplied);
+      vips_object_local(hook, imagePremultiplied);
 
       // Perform affine transformation:
       VipsImage *imagePremultipliedTransformed;
-      if (vips_affine(image, &imagePremultipliedTransformed, xresidual, 0.0, 0.0, yresidual, "interpolate", interpolator, NULL)) {
+      if (vips_affine(imagePremultiplied, &imagePremultipliedTransformed, xresidual, 0.0, 0.0, yresidual, "interpolate", interpolator, NULL)) {
         return Error();
       }
       vips_object_local(hook, imagePremultipliedTransformed);
