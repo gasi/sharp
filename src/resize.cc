@@ -845,8 +845,15 @@ class ResizeWorker : public NanAsyncWorker {
         return Error();
       }
 
+      VipsImage *overlayImagePremultiplied;
+      if (Premultiply(hook, overlayImage, &overlayImagePremultiplied)) {
+        (baton->err).append("Failed to premultiply alpha channel of overlay image.");
+        return Error();
+      }
+      vips_object_local(hook, overlayImagePremultiplied);
+
       VipsImage *composited;
-      if (Composite(hook, overlayImage, image, &composited)) {
+      if (Composite(hook, overlayImagePremultiplied, image, &composited)) {
         (baton->err).append("Failed to composite images");
         return Error();
       }
