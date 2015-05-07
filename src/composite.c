@@ -27,8 +27,8 @@ int Composite(VipsObject *context, VipsImage *srcPremultiplied, VipsImage *dstPr
   // Extract alpha bands:
   VipsImage *srcAlpha;
   VipsImage *dstAlpha;
-  if (vips_extract_band(srcPremultiplied, &srcAlpha, ALPHA_BAND_INDEX, NULL) ||
-      vips_extract_band(dstPremultiplied, &dstAlpha, ALPHA_BAND_INDEX, NULL))
+  if (vips_extract_band(srcPremultiplied, &srcAlpha, ALPHA_BAND_INDEX, "n", 1, NULL) ||
+      vips_extract_band(dstPremultiplied, &dstAlpha, ALPHA_BAND_INDEX, "n", 1, NULL))
     return -1;
 
   vips_object_local(context, srcAlpha);
