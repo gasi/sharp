@@ -9,16 +9,24 @@ sharp.cache(0);
 // Main
 describe('Overlays', function() {
   it('Overlay transparent PNG on solid background', function(done) {
+    var BASE_NAME = 'alpha-layer-01.png';
+    var actual = fixtures.path('output.' + BASE_NAME);
+    var expected = fixtures.expected(BASE_NAME);
+
     sharp(fixtures.inputPngOverlayLayer0)
       .overlayWith(fixtures.inputPngOverlayLayer1)
-      .toBuffer(function (error, data, info) {
+      .toFile(actual, function (error) {
         if (error) return done(error);
 
-        fixtures.assertSimilar(fixtures.expected('alpha-layer-01.png'), data, {threshold: 0}, done);
+        fixtures.assertIdentical(expected, actual, done);
       });
   });
 
   it('Composite three transparent PNGs into one', function(done) {
+    var BASE_NAME = 'alpha-layer-012.png';
+    var actual = fixtures.path('output.' + BASE_NAME);
+    var expected = fixtures.expected(BASE_NAME);
+
     sharp(fixtures.inputPngOverlayLayer0)
       .overlayWith(fixtures.inputPngOverlayLayer1)
       .toBuffer(function (error, data, info) {
@@ -26,22 +34,25 @@ describe('Overlays', function() {
 
         sharp(data)
           .overlayWith(fixtures.inputPngOverlayLayer2)
-          .toBuffer(function (error, data, info) {
+          .toFile(expected, function (error) {
             if (error) return done(error);
 
-            fixtures.assertSimilar(fixtures.expected('alpha-layer-012.png'), data, {threshold: 0}, done);
+            fixtures.assertIdentical(expected, expected, done);
           });
       });
   });
 
   // This tests that alpha channel unpremultiplication is correct:
   it('Composite three low-alpha transparent PNGs into one', function(done) {
+    var BASE_NAME = 'alpha-layer-12-low-alpha.png';
+    var actual = fixtures.path('output.' + BASE_NAME);
+    var expected = fixtures.expected(BASE_NAME);
+
     sharp(fixtures.inputPngOverlayLayer1LowAlpha)
       .overlayWith(fixtures.inputPngOverlayLayer2LowAlpha)
-      .toBuffer(function (error, data, info) {
+      .toFile(expected, function (error, data, info) {
         if (error) return done(error);
-
-        fixtures.assertSimilar(fixtures.expected('alpha-layer-012-low-alpha.png'), data, {threshold: 0}, done);
+        fixtures.assertIdentical(expected, expected, done);
       });
   });
 
