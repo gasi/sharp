@@ -7,27 +7,28 @@ const int NUM_COLOR_BANDS = 3;
 
 
 /*
-  Composite images `src` and `dst`
+  Composite images `src` and `dst` with premultiplied alpha channel and output
+  image with premultiplied alpha.
  */
-int Composite(VipsObject *context, VipsImage *src, VipsImage *dst, VipsImage **out) {
-  if (src->Bands != 4 || dst->Bands != 4)
+int Composite(VipsObject *context, VipsImage *srcPremultiplied, VipsImage *dstPremultiplied, VipsImage **outPremultiplied) {
+  if (srcPremultiplied->Bands != 4 || dstPremultiplied->Bands != 4)
     return -1;
 
   // Extract RGB bands:
-  VipsImage *srcRGB;
-  VipsImage *dstRGB;
-  if (vips_extract_band(src, &srcRGB, 0, "n", NUM_COLOR_BANDS, NULL) ||
-      vips_extract_band(dst, &dstRGB, 0, "n", NUM_COLOR_BANDS, NULL))
+  VipsImage *srcRGBPremultiplied;
+  VipsImage *dstRGBPremultiplied;
+  if (vips_extract_band(srcPremultiplied, &srcRGBPremultiplied, 0, "n", NUM_COLOR_BANDS, NULL) ||
+      vips_extract_band(dstPremultiplied, &dstRGBPremultiplied, 0, "n", NUM_COLOR_BANDS, NULL))
     return -1;
 
-  vips_object_local(context, srcRGB);
-  vips_object_local(context, dstRGB);
+  vips_object_local(context, srcRGBPremultiplied);
+  vips_object_local(context, dstRGBPremultiplied);
 
   // Extract alpha bands:
   VipsImage *srcAlpha;
   VipsImage *dstAlpha;
-  if (vips_extract_band(src, &srcAlpha, ALPHA_BAND_INDEX, NULL) ||
-      vips_extract_band(dst, &dstAlpha, ALPHA_BAND_INDEX, NULL))
+  if (vips_extract_band(srcPremultiplied, &srcAlpha, ALPHA_BAND_INDEX, NULL) ||
+      vips_extract_band(dstPremultiplied, &dstAlpha, ALPHA_BAND_INDEX, NULL))
     return -1;
 
   vips_object_local(context, srcAlpha);
@@ -72,39 +73,21 @@ int Composite(VipsObject *context, VipsImage *src, VipsImage *dst, VipsImage **o
   //
   // Wikipedia:
   // out_rgb = (src_rgb * src_a + dst_rgb * dst_a * (1 - src_a)) / out_a
+  //                                                ^^^^^^^^^^^
+  //                                                    t0
   //
-  // `vips_ifthenelse` with `blend=TRUE`: http://bit.ly/1KoSsga
-  // out = (cond / 255) * in1 + (1 - cond / 255) * in2
+  // Omit division by `out_a` since `Compose` is supposed to output a
+  // premultiplied RGBA image as reversal of premultiplication is handled
+  // externally.
   //
-  // Substitutions:
-  //
-  //     cond --> src_a
-  //     in1 --> src_rgb
-  //     in2 --> dst_rgb * dst_a (premultiplied destination RGB)
-  //
-  // Finally, manually divide by `out_a` to unpremultiply the RGB channels.
-  // Failing to do so results in darker than expected output with low
-  // opacity images.
-  //
-  VipsImage *dstRGBPremultiplied;
-  if (vips_multiply(dstRGB, dstAlphaNormalized, &dstRGBPremultiplied, NULL))
-    return -1;
-
-  vips_object_local(context, dstRGBPremultiplied);
-
+  VipsImage *t2;
   VipsImage *outRGBPremultiplied;
-  if (vips_ifthenelse(srcAlpha, srcRGB, dstRGBPremultiplied,
-      &outRGBPremultiplied, "blend", TRUE, NULL))
+  if (vips_multiply(dstRGBPremultiplied, t0, &t2, NULL) ||
+      vips_add(srcRGBPremultiplied, t2, &outRGBPremultiplied, NULL))
     return -1;
 
+  vips_object_local(context, t2);
   vips_object_local(context, outRGBPremultiplied);
-
-  // Unpremultiply RGB channels:
-  VipsImage *outRGB;
-  if (vips_divide(outRGBPremultiplied, outAlphaNormalized, &outRGB, NULL))
-    return -1;
-
-  vips_object_local(context, outRGB);
 
   // Denormalize output alpha channel:
   VipsImage *outAlpha;
@@ -115,11 +98,11 @@ int Composite(VipsObject *context, VipsImage *src, VipsImage *dst, VipsImage **o
 
   // Combine RGB and alpha channel into output image:
   VipsImage *joined;
-  if (vips_bandjoin2(outRGB, outAlpha, &joined, NULL))
+  if (vips_bandjoin2(outRGBPremultiplied, outAlpha, &joined, NULL))
     return -1;
 
   // Return a reference to the output image:
-  *out = joined;
+  *outPremultiplied = joined;
 
   return 0;
 }
