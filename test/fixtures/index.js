@@ -2,7 +2,7 @@
 
 var path = require('path');
 var assert = require('assert');
-
+var fileCompare = require('file-compare').compare;
 var sharp = require('../../index');
 
 var getPath = function(filename) {
@@ -122,6 +122,29 @@ module.exports = {
         callback();
       });
     });
-  }
+  },
 
+  assertIdentical: function(expectedImagePath, actualImagePath, callback) {
+    if (typeof expectedImagePath !== 'string') {
+      throw new TypeError('`expectedImagePath` must be a string');
+    }
+
+    if (typeof actualImagePath !== 'string') {
+      throw new TypeError('`actualImagePath` must be a string');
+    }
+
+    if (typeof callback !== 'function') {
+      throw new TypeError('`callback` must be a function');
+    }
+
+    var HASH_ALGORITHM = 'sha1';
+    fileCompare(expectedImagePath, actualImagePath, HASH_ALGORITHM, function (isIdentical, error) {
+      if (!isIdentical || error) {
+        var cause = error || new Error('Actual image (' + actualImagePath + ') does not match expected image (' +  expectedImagePath + ')');
+        callback(cause);
+      } else {
+        callback();
+      }
+    });
+  }
 };
