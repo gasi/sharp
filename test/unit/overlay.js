@@ -61,7 +61,7 @@ describe('Overlays', function() {
 
   // This tests that alpha channel unpremultiplication is correct:
   it('Composite three low-alpha transparent PNGs into one', function(done) {
-    var BASE_NAME = 'alpha-layer-12-low-alpha.png';
+    var BASE_NAME = 'alpha-layer-012-low-alpha.png';
     var actual = fixtures.path('output.' + BASE_NAME);
     var expected = fixtures.expected(BASE_NAME);
 
