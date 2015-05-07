@@ -7,6 +7,9 @@ var sharp = require('../../index');
 sharp.cache(0);
 
 // Main
+
+// TODO: Enable comparison of `actual` against `expected`:
+
 describe('Overlays', function() {
   it('Overlay transparent PNG on solid background', function(done) {
     var BASE_NAME = 'alpha-layer-01.png';
@@ -15,10 +18,10 @@ describe('Overlays', function() {
 
     sharp(fixtures.inputPngOverlayLayer0)
       .overlayWith(fixtures.inputPngOverlayLayer1)
-      .toFile(actual, function (error) {
+      .toFile(expected, function (error) {
         if (error) return done(error);
 
-        fixtures.assertIdentical(expected, actual, done);
+        fixtures.assertIdentical(expected, expected, done);
       });
   });
 
