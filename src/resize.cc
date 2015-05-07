@@ -863,26 +863,13 @@ class ResizeWorker : public NanAsyncWorker {
 
     // Reverse premultiplication after all transformations:
     if (shouldPremultiplyImageAlpha) {
-        VipsImage *imageAlphaTransformed;
-        VipsImage *imageAlphaNormalizedTransformed;
-        VipsImage *imageRGBPremultipliedTransformed;
-        VipsImage *imageRGBUnpremultipliedTransformed;
-        VipsImage *imageUnpremultiplied;
-        if (vips_extract_band(image, &imageRGBPremultipliedTransformed, 0, "n", 3, NULL) ||
-            vips_extract_band(image, &imageAlphaTransformed, 3, "n", 1, NULL) ||
-            vips_linear1(imageAlphaTransformed, &imageAlphaNormalizedTransformed, 1.0 / 255.0, 0.0, NULL) ||
-            vips_divide(imageRGBPremultipliedTransformed, imageAlphaNormalizedTransformed, &imageRGBUnpremultipliedTransformed, NULL) ||
-            vips_bandjoin2(imageRGBUnpremultipliedTransformed, imageAlphaTransformed, &imageUnpremultiplied, NULL)) {
-          (baton->err).append("Failed to reverse premultiplication of alpha channel.");
-          return Error();
-        }
-        vips_object_local(hook, imageRGBPremultipliedTransformed);
-        vips_object_local(hook, imageAlphaTransformed);
-        vips_object_local(hook, imageAlphaNormalizedTransformed);
-        vips_object_local(hook, imageRGBUnpremultipliedTransformed);
-        vips_object_local(hook, imageUnpremultiplied);
+      VipsImage *imageUnpremultiplied;
+      if (Unpremultiply(hook, image, &imageUnpremultiplied)) {
+        (baton->err).append("Failed to unpremultiply alpha channel.");
+        return Error();
+      }
 
-        image = imageUnpremultiplied;
+      image = imageUnpremultiplied;
     }
 
     // Convert image to sRGB, if not already
