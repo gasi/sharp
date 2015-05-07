@@ -89,7 +89,7 @@ describe('Alpha transparency', function() {
   });
 
   it('Reduction with non-nearest neighbor interpolation shouldn’t cause dark edges', function(done) {
-    var BASE_NAME = 'alpha-premultiply-enlargement-1024x768-paper.png';
+    var BASE_NAME = 'alpha-premultiply-reduction-1024x768-paper.png';
     var actual = fixtures.path('output.' + BASE_NAME);
     var expected = fixtures.expected(BASE_NAME);
     sharp(fixtures.inputPngAlphaPremultiplicationLarge)
