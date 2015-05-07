@@ -7,10 +7,10 @@ sharp.cache(0);
 
 // Constants
 var INTERPOLATOR = 'bicubic';
-var METHOD = 'disablegaussianblur';
-var SCALE_FACTOR = 0.5;
-var INPUT_WIDTH = 2048;
-var INPUT_HEIGHT = 1536;
+var METHOD = 'premultiply';
+var SCALE_FACTOR = 2;
+var INPUT_WIDTH = 1024;
+var INPUT_HEIGHT = 768;
 
 // Helper
 var process = function (tool, callback) {
@@ -39,16 +39,16 @@ var process = function (tool, callback) {
 // Test
 describe('Resizing image with alpha channel', function() {
 
-  it('should not output black fringing around white details [Photoshop]',
-    process('photoshop'));
+  // it('should not output black fringing around white details [Photoshop]',
+  //   process('photoshop'));
 
-  it('should not output black fringing around white details [Pixelmator]',
-    process('pixelmator'));
+  // it('should not output black fringing around white details [Pixelmator]',
+  //   process('pixelmator'));
 
   it('should not output black fringing around white details [Paper]',
     process('paper'));
 
-  it('should not output black fringing around white details [Paper saved in Photoshop]',
-    process('paper-ps'));
+  // it('should not output black fringing around white details [Paper saved in Photoshop]',
+  //   process('paper-ps'));
 
 });
