@@ -106,3 +106,34 @@ int Composite(VipsObject *context, VipsImage *srcPremultiplied, VipsImage *dstPr
 
   return 0;
 }
+
+/*
+ * Premultiply alpha channel of `image`.
+ */
+int Premultiply(VipsObject *context, VipsImage *image, VipsImage **out) {
+  if (image->Bands != 4)
+    return -1;
+
+  VipsImage *imageRGB;
+  VipsImage *imageAlpha;
+  VipsImage *imageAlphaNormalized;
+  VipsImage *imageRGBPremultiplied;
+  VipsImage *imagePremultiplied;
+
+  if (vips_extract_band(image, &imageRGB, 0, "n", NUM_COLOR_BANDS, NULL) ||
+      vips_extract_band(image, &imageAlpha, ALPHA_BAND_INDEX, "n", 1, NULL) ||
+      vips_linear1(imageAlpha, &imageAlphaNormalized, 1.0 / 255.0, 0.0, NULL) ||
+      vips_multiply(imageRGB, imageAlphaNormalized, &imageRGBPremultiplied, NULL) ||
+      vips_bandjoin2(imageRGBPremultiplied, imageAlpha, &imagePremultiplied, NULL))
+    return -1;
+
+  vips_object_local(context, imageRGB);
+  vips_object_local(context, imageAlpha);
+  vips_object_local(context, imageAlphaNormalized);
+  vips_object_local(context, imageRGBPremultiplied);
+
+  // Return a reference to the premultiplied output image:
+  *out = imagePremultiplied;
+
+  return 0;
+}

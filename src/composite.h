@@ -5,7 +5,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 int Composite(VipsObject *context, VipsImage *src, VipsImage *dst, VipsImage **out);
+int Premultiply(VipsObject *context, VipsImage *image, VipsImage **out);
 
 #ifdef __cplusplus
 }
