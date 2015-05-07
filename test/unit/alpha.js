@@ -75,4 +75,30 @@ describe('Alpha transparency', function() {
       });
   });
 
+  it('Enlargement with non-nearest neighbor interpolation shouldn’t cause dark edges', function(done) {
+    var BASE_NAME = 'alpha-premultiply-enlargement-2048x1536-paper.png';
+    var actual = fixtures.path('output.' + BASE_NAME);
+    var expected = fixtures.expected(BASE_NAME);
+    sharp(fixtures.inputPngAlphaPremultiplicationSmall)
+      .resize(2048, 1536)
+      .interpolateWith('bicubic')
+      .toFile(actual, function(err) {
+        if (err) throw err;
+        fixtures.assertIdentical(expected, actual, done);
+      });
+  });
+
+  it('Reduction with non-nearest neighbor interpolation shouldn’t cause dark edges', function(done) {
+    var BASE_NAME = 'alpha-premultiply-enlargement-1024x768-paper.png';
+    var actual = fixtures.path('output.' + BASE_NAME);
+    var expected = fixtures.expected(BASE_NAME);
+    sharp(fixtures.inputPngAlphaPremultiplicationLarge)
+      .resize(1024, 768)
+      .interpolateWith('bicubic')
+      .toFile(actual, function(err) {
+        if (err) throw err;
+        fixtures.assertIdentical(expected, actual, done);
+      });
+  });
+
 });
