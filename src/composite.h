@@ -5,9 +5,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-/*
-  Composite images `src` and `dst`.
-*/
 int Composite(VipsObject *context, VipsImage *src, VipsImage *dst, VipsImage **out);
 
 #ifdef __cplusplus
