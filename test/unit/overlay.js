@@ -18,10 +18,10 @@ describe('Overlays', function() {
 
     sharp(fixtures.inputPngOverlayLayer0)
       .overlayWith(fixtures.inputPngOverlayLayer1)
-      .toFile(expected, function (error) {
+      .toFile(actual, function (error) {
         if (error) return done(error);
 
-        fixtures.assertIdentical(expected, expected, done);
+        fixtures.assertIdentical(expected, actual, done);
       });
   });
 
@@ -32,10 +32,10 @@ describe('Overlays', function() {
 
     sharp(fixtures.inputPngOverlayLayer0)
       .overlayWith(fixtures.inputPngOverlayLayer1LowAlpha)
-      .toFile(expected, function (error) {
+      .toFile(actual, function (error) {
         if (error) return done(error);
 
-        fixtures.assertIdentical(expected, expected, done);
+        fixtures.assertIdentical(expected, actual, done);
       });
   });
 
@@ -51,10 +51,10 @@ describe('Overlays', function() {
 
         sharp(data)
           .overlayWith(fixtures.inputPngOverlayLayer2)
-          .toFile(expected, function (error) {
+          .toFile(actual, function (error) {
             if (error) return done(error);
 
-            fixtures.assertIdentical(expected, expected, done);
+            fixtures.assertIdentical(expected, actual, done);
           });
       });
   });
@@ -67,9 +67,9 @@ describe('Overlays', function() {
 
     sharp(fixtures.inputPngOverlayLayer1)
       .overlayWith(fixtures.inputPngOverlayLayer2)
-      .toFile(expected, function (error, data, info) {
+      .toFile(actual, function (error, data, info) {
         if (error) return done(error);
-        fixtures.assertIdentical(expected, expected, done);
+        fixtures.assertIdentical(expected, actual, done);
       });
   });
 
@@ -81,9 +81,9 @@ describe('Overlays', function() {
 
     sharp(fixtures.inputPngOverlayLayer1LowAlpha)
       .overlayWith(fixtures.inputPngOverlayLayer2LowAlpha)
-      .toFile(expected, function (error, data, info) {
+      .toFile(actual, function (error, data, info) {
         if (error) return done(error);
-        fixtures.assertIdentical(expected, expected, done);
+        fixtures.assertIdentical(expected, actual, done);
       });
   });
 
@@ -100,9 +100,9 @@ describe('Overlays', function() {
 
         sharp(data)
           .overlayWith(fixtures.inputPngOverlayLayer2LowAlpha)
-          .toFile(expected, function (error, data, info) {
+          .toFile(actual, function (error, data, info) {
             if (error) return done(error);
-            fixtures.assertIdentical(expected, expected, done);
+            fixtures.assertIdentical(expected, actual, done);
           });
       });
   });
