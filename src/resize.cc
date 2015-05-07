@@ -457,26 +457,13 @@ class ResizeWorker : public NanAsyncWorker {
     // See: http://entropymine.com/imageworsener/resizealpha/
     bool shouldPremultiplyImageAlpha = HasAlpha(image) && image->Bands == 4;
     if (shouldPremultiplyImageAlpha) {
-        VipsImage *imageRGB;
-        VipsImage *imageAlpha;
-        VipsImage *imageAlphaNormalized;
-        VipsImage *imageRGBPremultiplied;
-        VipsImage *imagePremultiplied;
-        if (vips_extract_band(image, &imageRGB, 0, "n", 3, NULL) ||
-            vips_extract_band(image, &imageAlpha, 3, "n", 1, NULL) ||
-            vips_linear1(imageAlpha, &imageAlphaNormalized, 1.0 / 255.0, 0.0, NULL) ||
-            vips_multiply(imageRGB, imageAlphaNormalized, &imageRGBPremultiplied, NULL) ||
-            vips_bandjoin2(imageRGBPremultiplied, imageAlpha, &imagePremultiplied, NULL)) {
-          (baton->err).append("Failed to premultiply alpha channel.");
-          return Error();
-        }
-        vips_object_local(hook, imageRGB);
-        vips_object_local(hook, imageAlpha);
-        vips_object_local(hook, imageAlphaNormalized);
-        vips_object_local(hook, imageRGBPremultiplied);
-        vips_object_local(hook, imagePremultiplied);
+      VipsImage *imagePremultiplied;
+      if (Premultiply(hook, image, &imagePremultiplied)) {
+        (baton->err).append("Failed to premultiply alpha channel.");
+        return Error();
+      }
 
-        image = imagePremultiplied;
+      image = imagePremultiplied;
     }
 
     if (xshrink > 1 || yshrink > 1) {
