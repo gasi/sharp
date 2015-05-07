@@ -1,9 +1,8 @@
 'use strict';
 
 var assert = require('assert');
-
-var sharp = require('../../index');
 var fixtures = require('../fixtures');
+var sharp = require('../../index');
 
 sharp.cache(0);
 
