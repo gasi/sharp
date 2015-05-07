@@ -42,6 +42,7 @@ var Sharp = function(input) {
     heightPost: -1,
     width: -1,
     height: -1,
+    applyGaussianBlur: true,
     canvas: 'crop',
     gravity: 0,
     angle: 0,
@@ -496,7 +497,16 @@ Sharp.prototype.tile = function(size, overlap) {
   return this;
 };
 
-Sharp.prototype.resize = function(width, height) {
+Sharp.prototype.resize = function(width, height, options) {
+  if (typeof options === 'undefined') {
+    options = {};
+  }
+
+  // Apply Gaussian blur for large reductions?
+  if (typeof options.applyGaussianBlur === 'boolean') {
+    this.options.applyGaussianBlur = options.applyGaussianBlur;
+  }
+
   if (!width) {
     this.options.width = -1;
   } else {

@@ -20,7 +20,7 @@
   ],
   "description": "High performance Node.js module to resize JPEG, PNG, WebP and TIFF images using the libvips library",
   "scripts": {
-    "test": "VIPS_WARNING=0 node ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- --slow=5000 --timeout=20000 ./test/unit/*.js",
+    "test": "VIPS_WARNING=0 node ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- --slow=5000 --timeout=20000 ./test/unit/alpha-resizing.js && vips affine test/fixtures/alpha-resizing-1024x768-paper.png test/fixtures/out.alpha-resizing-bicubic-2048x1536-paper-vips.png '2 0 0 2' --interpolate 'bicubic'",
     "test-win32-node": "node ./node_modules/mocha/bin/mocha --slow=5000 --timeout=20000 ./test/unit/*.js",
     "test-win32-iojs": "iojs ./node_modules/mocha/bin/mocha --slow=5000 --timeout=20000 ./test/unit/*.js"
   },

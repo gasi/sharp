@@ -72,6 +72,7 @@ struct ResizeBaton {
   int heightPost;
   int width;
   int height;
+  bool applyGaussianBlur;
   Canvas canvas;
   int gravity;
   std::string interpolator;
@@ -110,6 +111,7 @@ struct ResizeBaton {
     bufferOutLength(0),
     topOffsetPre(-1),
     topOffsetPost(-1),
+    applyGaussianBlur(true),
     canvas(Canvas::CROP),
     gravity(0),
     flatten(false),
@@ -220,7 +222,7 @@ class ResizeWorker : public NanAsyncWorker {
       return Error();
     }
 
-    // Calculate angle of rotation
+    // // Calculate angle of rotation
     Angle rotation;
     bool flip;
     std::tie(rotation, flip) = CalculateRotationAndFlip(baton->angle, image);
@@ -450,6 +452,30 @@ class ResizeWorker : public NanAsyncWorker {
       image = greyscale;
     }
 
+    // Premultiply image alpha channel before all transformations:
+    bool shouldPremultiplyImageAlpha = HasAlpha(image) && image->Bands == 4;
+    if (shouldPremultiplyImageAlpha) {
+        VipsImage *imageRGB;
+        VipsImage *imageAlpha;
+        VipsImage *imageAlphaNormalized;
+        VipsImage *imageRGBPremultiplied;
+        VipsImage *imagePremultiplied;
+        if (vips_extract_band(image, &imageRGB, 0, "n", 3, NULL) ||
+            vips_extract_band(image, &imageAlpha, 3, "n", 1, NULL) ||
+            vips_linear1(imageAlpha, &imageAlphaNormalized, 1.0 / 255.0, 0.0, NULL) ||
+            vips_multiply(imageRGB, imageAlphaNormalized, &imageRGBPremultiplied, NULL) ||
+            vips_bandjoin2(imageRGBPremultiplied, imageAlpha, &imagePremultiplied, NULL)) {
+           return Error();
+        }
+        vips_object_local(hook, imageRGB);
+        vips_object_local(hook, imageAlpha);
+        vips_object_local(hook, imageAlphaNormalized);
+        vips_object_local(hook, imageRGBPremultiplied);
+        vips_object_local(hook, imagePremultiplied);
+
+        image = imagePremultiplied;
+    }
+
     if (xshrink > 1 || yshrink > 1) {
       VipsImage *shrunk;
       // Use vips_shrink with the integral reduction
@@ -483,7 +509,7 @@ class ResizeWorker : public NanAsyncWorker {
       // Use average of x and y residuals to compute sigma for Gaussian blur
       double residual = (xresidual + yresidual) / 2.0;
       // Apply Gaussian blur before large affine reductions
-      if (residual < 1.0) {
+      if (residual < 1.0 && baton->applyGaussianBlur) {
         // Calculate standard deviation
         double sigma = ((1.0 / residual) - 0.4) / 3.0;
         if (sigma >= 0.3) {
@@ -517,12 +543,13 @@ class ResizeWorker : public NanAsyncWorker {
         return Error();
       }
       vips_object_local(hook, interpolator);
-      // Perform affine transformation
+
       VipsImage *affined;
       if (vips_affine(image, &affined, xresidual, 0.0, 0.0, yresidual, "interpolate", interpolator, NULL)) {
         return Error();
       }
       vips_object_local(hook, affined);
+
       image = affined;
     }
 
@@ -789,6 +816,29 @@ class ResizeWorker : public NanAsyncWorker {
       }
     }
 #endif
+
+    // Reverse premultiplication after all transformations:
+    if (shouldPremultiplyImageAlpha) {
+        VipsImage *imageAlphaTransformed;
+        VipsImage *imageAlphaNormalizedTransformed;
+        VipsImage *imageRGBPremultipliedTransformed;
+        VipsImage *imageRGBUnpremultipliedTransformed;
+        VipsImage *imageUnpremultiplied;
+        if (vips_extract_band(image, &imageRGBPremultipliedTransformed, 0, "n", 3, NULL) ||
+            vips_extract_band(image, &imageAlphaTransformed, 3, "n", 1, NULL) ||
+            vips_linear1(imageAlphaTransformed, &imageAlphaNormalizedTransformed, 1.0 / 255.0, 0.0, NULL) ||
+            vips_divide(imageRGBPremultipliedTransformed, imageAlphaNormalizedTransformed, &imageRGBUnpremultipliedTransformed, NULL) ||
+            vips_bandjoin2(imageRGBUnpremultipliedTransformed, imageAlphaTransformed, &imageUnpremultiplied, NULL)) {
+           return Error();
+        }
+        vips_object_local(hook, imageRGBPremultipliedTransformed);
+        vips_object_local(hook, imageAlphaTransformed);
+        vips_object_local(hook, imageAlphaNormalizedTransformed);
+        vips_object_local(hook, imageRGBUnpremultipliedTransformed);
+        vips_object_local(hook, imageUnpremultiplied);
+
+        image = imageUnpremultiplied;
+    }
 
     // Convert image to sRGB, if not already
     if (image->Type != VIPS_INTERPRETATION_sRGB) {
@@ -1157,6 +1207,7 @@ NAN_METHOD(resize) {
   // Output image dimensions
   baton->width = options->Get(NanNew<String>("width"))->Int32Value();
   baton->height = options->Get(NanNew<String>("height"))->Int32Value();
+  baton->applyGaussianBlur = options->Get(NanNew<String>("applyGaussianBlur"))->BooleanValue();
   // Canvas option
   Local<String> canvas = options->Get(NanNew<String>("canvas"))->ToString();
   if (canvas->Equals(NanNew<String>("crop"))) {
