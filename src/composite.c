@@ -101,7 +101,7 @@ int Composite(VipsObject *context, VipsImage *srcPremultiplied, VipsImage *dstPr
   if (vips_bandjoin2(outRGBPremultiplied, outAlpha, &joined, NULL))
     return -1;
 
-  // Return a reference to the output image:
+  // Return a reference to the composited output image:
   *outPremultiplied = joined;
 
   return 0;
