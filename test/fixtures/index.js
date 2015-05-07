@@ -118,7 +118,7 @@ module.exports = {
         }
 
         if (distance > options.threshold) {
-          return callback(new Error('Maximum similarity distance: ' + options.threshold + '. Actual: ' + distance));
+          return callback(new Error('Expected maximum similarity distance: ' + options.threshold + '. Actual: ' + distance + '.'));
         }
 
         callback();
@@ -142,7 +142,7 @@ module.exports = {
     var HASH_ALGORITHM = 'sha1';
     fileCompare(expectedImagePath, actualImagePath, HASH_ALGORITHM, function (isIdentical, error) {
       if (!isIdentical || error) {
-        var cause = error || new Error('Actual image (' + actualImagePath + ') does not match expected image (' +  expectedImagePath + ')');
+        var cause = error || new Error('Actual image (' + actualImagePath + ') does not match expected image (' +  expectedImagePath + ').');
         callback(cause);
       } else {
         callback();
