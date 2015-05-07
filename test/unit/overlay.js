@@ -46,7 +46,7 @@ describe('Overlays', function() {
   });
 
   // This tests that alpha channel unpremultiplication is correct:
-  it('Composite three low-alpha transparent PNGs into one', function(done) {
+  it('Composite two low-alpha transparent PNGs into one', function(done) {
     var BASE_NAME = 'alpha-layer-12-low-alpha.png';
     var actual = fixtures.path('output.' + BASE_NAME);
     var expected = fixtures.expected(BASE_NAME);
@@ -56,6 +56,26 @@ describe('Overlays', function() {
       .toFile(expected, function (error, data, info) {
         if (error) return done(error);
         fixtures.assertIdentical(expected, expected, done);
+      });
+  });
+
+  // This tests that alpha channel unpremultiplication is correct:
+  it('Composite three low-alpha transparent PNGs into one', function(done) {
+    var BASE_NAME = 'alpha-layer-12-low-alpha.png';
+    var actual = fixtures.path('output.' + BASE_NAME);
+    var expected = fixtures.expected(BASE_NAME);
+
+    sharp(fixtures.inputPngOverlayLayer0)
+      .overlayWith(fixtures.inputPngOverlayLayer1LowAlpha)
+      .toBuffer(function (error, data, info) {
+        if (error) return done(error);
+
+        sharp(data)
+          .overlayWith(fixtures.inputPngOverlayLayer2LowAlpha)
+          .toFile(expected, function (error, data, info) {
+            if (error) return done(error);
+            fixtures.assertIdentical(expected, expected, done);
+          });
       });
   });
 
