@@ -137,3 +137,33 @@ int Premultiply(VipsObject *context, VipsImage *image, VipsImage **out) {
 
   return 0;
 }
+
+/*
+ * Unpremultiply alpha channel of `image`.
+ */
+int Unpremultiply(VipsObject *context, VipsImage *image, VipsImage **out) {
+  if (image->Bands != 4)
+    return -1;
+
+  VipsImage *imageAlphaTransformed;
+  VipsImage *imageAlphaNormalizedTransformed;
+  VipsImage *imageRGBPremultipliedTransformed;
+  VipsImage *imageRGBUnpremultipliedTransformed;
+  VipsImage *imageUnpremultiplied;
+  if (vips_extract_band(image, &imageRGBPremultipliedTransformed, 0, "n", NUM_COLOR_BANDS, NULL) ||
+      vips_extract_band(image, &imageAlphaTransformed, ALPHA_BAND_INDEX, "n", 1, NULL) ||
+      vips_linear1(imageAlphaTransformed, &imageAlphaNormalizedTransformed, 1.0 / 255.0, 0.0, NULL) ||
+      vips_divide(imageRGBPremultipliedTransformed, imageAlphaNormalizedTransformed, &imageRGBUnpremultipliedTransformed, NULL) ||
+      vips_bandjoin2(imageRGBUnpremultipliedTransformed, imageAlphaTransformed, &imageUnpremultiplied, NULL))
+    return -1;
+
+  vips_object_local(context, imageRGBPremultipliedTransformed);
+  vips_object_local(context, imageAlphaTransformed);
+  vips_object_local(context, imageAlphaNormalizedTransformed);
+  vips_object_local(context, imageRGBUnpremultipliedTransformed);
+
+  // Return a reference to the unpremultiplied output image:
+  *out = imageUnpremultiplied;
+
+  return 0;
+}

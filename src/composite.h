@@ -8,6 +8,7 @@ extern "C" {
 
 int Composite(VipsObject *context, VipsImage *src, VipsImage *dst, VipsImage **out);
 int Premultiply(VipsObject *context, VipsImage *image, VipsImage **out);
+int Unpremultiply(VipsObject *context, VipsImage *image, VipsImage **out);
 
 #ifdef __cplusplus
 }
