@@ -452,20 +452,6 @@ class ResizeWorker : public NanAsyncWorker {
       image = greyscale;
     }
 
-    // Premultiply image alpha channel before all transformations to avoid
-    // dark fringing around bright pixels:
-    // See: http://entropymine.com/imageworsener/resizealpha/
-    bool shouldPremultiplyImageAlpha = HasAlpha(image) && image->Bands == 4;
-    if (shouldPremultiplyImageAlpha) {
-      VipsImage *imagePremultiplied;
-      if (Premultiply(hook, image, &imagePremultiplied)) {
-        (baton->err).append("Failed to premultiply alpha channel.");
-        return Error();
-      }
-
-      image = imagePremultiplied;
-    }
-
     if (xshrink > 1 || yshrink > 1) {
       VipsImage *shrunk;
       // Use vips_shrink with the integral reduction
@@ -494,8 +480,28 @@ class ResizeWorker : public NanAsyncWorker {
       }
     }
 
+    // Premultiply image alpha channel before all transformations to avoid
+    // dark fringing around bright pixels
+    // See: http://entropymine.com/imageworsener/resizealpha/
+    bool shouldAffineTransform = xresidual != 0.0 || yresidual != 0.0;
+    bool shouldBlur = baton->blurSigma != 0.0;
+    bool shouldSharpen = baton->sharpenRadius != 0;
+    bool shouldTransform = shouldAffineTransform || shouldBlur || shouldSharpen;
+    bool hasOverlay = !baton->overlayPath.empty();
+    bool shouldPremultiplyAlpha = HasAlpha(image) && image->Bands == 4 && (shouldTransform || hasOverlay);
+
+    if (shouldPremultiplyAlpha) {
+      VipsImage *imagePremultiplied;
+      if (Premultiply(hook, image, &imagePremultiplied)) {
+        (baton->err).append("Failed to premultiply alpha channel.");
+        return Error();
+      }
+
+      image = imagePremultiplied;
+    }
+
     // Use vips_affine with the remaining float part
-    if (xresidual != 0.0 || yresidual != 0.0) {
+    if (shouldAffineTransform) {
       // Use average of x and y residuals to compute sigma for Gaussian blur
       double residual = (xresidual + yresidual) / 2.0;
       // Apply Gaussian blur before large affine reductions
@@ -660,7 +666,7 @@ class ResizeWorker : public NanAsyncWorker {
     }
 
     // Blur
-    if (baton->blurSigma != 0.0) {
+    if (shouldBlur) {
       VipsImage *blurred;
       if (baton->blurSigma < 0.0) {
         // Fast, mild blur - averages neighbouring pixels
@@ -691,7 +697,7 @@ class ResizeWorker : public NanAsyncWorker {
     }
 
     // Sharpen
-    if (baton->sharpenRadius != 0) {
+    if (shouldSharpen) {
       VipsImage *sharpened;
       if (baton->sharpenRadius == -1) {
         // Fast, mild sharpen
@@ -807,7 +813,7 @@ class ResizeWorker : public NanAsyncWorker {
 #endif
 
     // Composite with overlay, if present
-    if (!baton->overlayPath.empty()) {
+    if (hasOverlay) {
       VipsImage *overlayImage = NULL;
       ImageType overlayImageType = ImageType::UNKNOWN;
       overlayImageType = DetermineImageType(baton->overlayPath.c_str());
@@ -862,7 +868,7 @@ class ResizeWorker : public NanAsyncWorker {
     }
 
     // Reverse premultiplication after all transformations:
-    if (shouldPremultiplyImageAlpha) {
+    if (shouldPremultiplyAlpha) {
       VipsImage *imageUnpremultiplied;
       if (Unpremultiply(hook, image, &imageUnpremultiplied)) {
         (baton->err).append("Failed to unpremultiply alpha channel.");
