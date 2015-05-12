@@ -111,6 +111,15 @@ int Composite(VipsObject *context, VipsImage *srcPremultiplied, VipsImage *dstPr
  * Premultiply alpha channel of `image`.
  */
 int Premultiply(VipsObject *context, VipsImage *image, VipsImage **out) {
+  VipsImage *imagePremultiplied;
+
+#if (VIPS_MAJOR_VERSION >= 9 || (VIPS_MAJOR_VERSION >= 8 && VIPS_MINOR_VERSION >= 1))
+
+  if (vips_premultiply(image, &imagePremultiplied, NULL))
+    return -1;
+
+#else
+
   if (image->Bands != 4)
     return -1;
 
@@ -118,7 +127,6 @@ int Premultiply(VipsObject *context, VipsImage *image, VipsImage **out) {
   VipsImage *imageAlpha;
   VipsImage *imageAlphaNormalized;
   VipsImage *imageRGBPremultiplied;
-  VipsImage *imagePremultiplied;
 
   if (vips_extract_band(image, &imageRGB, 0, "n", NUM_COLOR_BANDS, NULL) ||
       vips_extract_band(image, &imageAlpha, ALPHA_BAND_INDEX, "n", 1, NULL) ||
@@ -132,16 +140,28 @@ int Premultiply(VipsObject *context, VipsImage *image, VipsImage **out) {
   vips_object_local(context, imageAlphaNormalized);
   vips_object_local(context, imageRGBPremultiplied);
 
+#endif
+
   // Return a reference to the premultiplied output image:
   *out = imagePremultiplied;
 
   return 0;
+
 }
 
 /*
  * Unpremultiply alpha channel of `image`.
  */
 int Unpremultiply(VipsObject *context, VipsImage *image, VipsImage **out) {
+  VipsImage *imageUnpremultiplied;
+
+#if (VIPS_MAJOR_VERSION >= 9 || (VIPS_MAJOR_VERSION >= 8 && VIPS_MINOR_VERSION >= 1))
+
+  if (vips_unpremultiply(image, &imageUnpremultiplied, NULL))
+    return -1;
+
+#else
+
   if (image->Bands != 4)
     return -1;
 
@@ -149,7 +169,6 @@ int Unpremultiply(VipsObject *context, VipsImage *image, VipsImage **out) {
   VipsImage *imageAlphaNormalizedTransformed;
   VipsImage *imageRGBPremultipliedTransformed;
   VipsImage *imageRGBUnpremultipliedTransformed;
-  VipsImage *imageUnpremultiplied;
   if (vips_extract_band(image, &imageRGBPremultipliedTransformed, 0, "n", NUM_COLOR_BANDS, NULL) ||
       vips_extract_band(image, &imageAlphaTransformed, ALPHA_BAND_INDEX, "n", 1, NULL) ||
       vips_linear1(imageAlphaTransformed, &imageAlphaNormalizedTransformed, 1.0 / 255.0, 0.0, NULL) ||
@@ -161,6 +180,8 @@ int Unpremultiply(VipsObject *context, VipsImage *image, VipsImage **out) {
   vips_object_local(context, imageAlphaTransformed);
   vips_object_local(context, imageAlphaNormalizedTransformed);
   vips_object_local(context, imageRGBUnpremultipliedTransformed);
+
+#endif
 
   // Return a reference to the unpremultiplied output image:
   *out = imageUnpremultiplied;
