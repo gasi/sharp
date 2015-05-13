@@ -27,15 +27,38 @@ int Compare(VipsObject *context, VipsImage *actual, VipsImage *expected, double 
     return -1;
 
   VipsImage *difference;
-  double standardDeviation;
+  VipsImage *stats;
   if (vips_subtract(actual, expected, &difference, NULL) ||
-      vips_deviate(difference, &standardDeviation, NULL))
+      vips_stats(difference, &stats, NULL))
     return -1;
 
   vips_object_local(context, difference);
 
+  printf("bands: %d\n", stats->Bands);
+  printf("bandformat: %d\n", stats->BandFmt);
+  printf("width: %d\n", stats->Xsize);
+  printf("height: %d\n", stats->Ysize);
+  printf("min: %f\n", (double) stats->data[0]);
+  printf("max: %f\n", (double) stats->data[1]);
+  printf("sum: %f\n", (double) stats->data[2]);
+  printf("sum2: %f\n", (double) stats->data[3]);
+  printf("avg: %f\n", (double) stats->data[4]);
+  printf("sd: %f\n", (double) stats->data[5]);
+  printf("xmin: %f\n", (double) stats->data[6]);
+  printf("ymin: %f\n", (double) stats->data[7]);
+  printf("xmax: %f\n", (double) stats->data[8]);
+  printf("ymax: %f\n", (double) stats->data[9]);
+
+  int numRows = stats->Bands + 1;
+  int numColumns = 10;
+  for (int row = 0; row < numRows; row++) {
+    for (int column = 0; column < numColumns; column++) {
+      printf("row %d column %d: %f\n", row, column, (double) stats->data[row * numColumns + column]);
+    }
+  }
+
   // Return a reference to the standard deviation:
-  *out = standardDeviation;
+  *out = (double) stats->data[5];
 
   return 0;
 }
@@ -91,7 +114,7 @@ int main(int argc, char **argv) {
   }
   g_object_unref(handle);
 
-  printf("MSE: %f", out);
+  printf("VIPS standard deviation: %f\n", out);
 
   g_object_unref(actualInput);
   g_object_unref(expectedInput);
