@@ -22,11 +22,11 @@ int Compare(VipsObject *context, VipsImage *actual, VipsImage *expected, double 
       vips_stats(absolute, &stats, NULL))
     return -1;
 
-  double *statsData = (double*) stats->data;
   vips_object_local(context, difference);
   vips_object_local(context, absolute);
   vips_object_local(context, stats);
 
+  double *statsData = (double*) stats->data;
   int numValues = actual->Xsize * actual->Ysize * actual->Bands;
   double sumOfSquares = statsData[STATS_SUM2_COLUMN];
   double meanSquaredError = sumOfSquares / numValues;
