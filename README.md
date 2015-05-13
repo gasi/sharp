@@ -787,7 +787,7 @@ This module would never have been possible without the help and code contributio
 * [Brandon Aaron](https://github.com/brandonaaron)
 * [Andreas Lind](https://github.com/papandreou)
 * [Maurus Cuelenaere](https://github.com/mcuelenaere)
-* [Linus Unneb‰ck](https://github.com/LinusU)
+* [Linus Unneb√§ck](https://github.com/LinusU)
 * [Victor Mateevitsi](https://github.com/mvictoras)
 * [Alaric Holloway](https://github.com/skedastik)
 * [Bernhard K. Weisshuhn](https://github.com/bkw)
