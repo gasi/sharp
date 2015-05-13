@@ -16,7 +16,7 @@ int Compare(VipsObject *context, VipsImage *actual, VipsImage *expected, double 
 
   VipsImage *difference;
   VipsImage *stats;
-  if (vips_subtract(actual, expected, &difference, NULL) ||
+  if (vips_subtract(expected, actual, &difference, NULL) ||
       vips_stats(difference, &stats, NULL))
     return -1;
 
