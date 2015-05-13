@@ -125,7 +125,7 @@ module.exports = {
     });
   },
 
-  assertIdentical: function(expectedImagePath, actualImagePath, callback) {
+  assertEqual: function(expectedImagePath, actualImagePath, callback) {
     if (typeof expectedImagePath !== 'string') {
       throw new TypeError('`expectedImagePath` must be a string');
     }

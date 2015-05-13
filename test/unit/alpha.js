@@ -84,7 +84,7 @@ describe('Alpha transparency', function() {
       .interpolateWith('bicubic')
       .toFile(actual, function(err) {
         if (err) throw err;
-        fixtures.assertIdentical(expected, actual, done);
+        fixtures.assertEqual(expected, actual, done);
       });
   });
 
@@ -97,7 +97,7 @@ describe('Alpha transparency', function() {
       .interpolateWith('bicubic')
       .toFile(actual, function(err) {
         if (err) throw err;
-        fixtures.assertIdentical(expected, actual, done);
+        fixtures.assertEqual(expected, actual, done);
       });
   });
 
