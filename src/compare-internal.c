@@ -1,17 +1,3 @@
-/*
- * Compile with:
- *
- *      gcc -g -Wall compare.c `pkg-config vips --cflags --libs` -o compare
- *
- * Run with:
- *
- *      ./compare actual expected
- *
- * Examples:
- *
- *      ./compare actual.png expected.png
- */
-
 #include <stdio.h>
 #include <vips/vips.h>
 
