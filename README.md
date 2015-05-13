@@ -169,6 +169,7 @@ sharp('input.png')
   .resize(300)
   .flatten()
   .background('#ff6600')
+  .overlayWith('overlay.png')
   .sharpen()
   .withMetadata()
   .quality(90)
@@ -176,8 +177,8 @@ sharp('input.png')
   .toBuffer()
   .then(function(outputBuffer) {
     // outputBuffer contains upside down, 300px wide, alpha channel flattened
-    // onto orange background, sharpened, with metadata, 90% quality WebP image
-    // data
+    // onto orange background, composited with `overlay.png`, sharpened,
+    // with metadata, 90% quality WebP image data
   });
 ```
 
@@ -415,6 +416,10 @@ If the background contains an alpha value then WebP and PNG format output images
 #### flatten()
 
 Merge alpha transparency channel, if any, with `background`.
+
+#### Experimental: overlayWith(filename)
+
+**Experimental:** Composite image with transparent overlay. Both input and overlay image must be RGBA.
 
 #### rotate([angle])
 
