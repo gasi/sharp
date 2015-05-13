@@ -99,9 +99,12 @@ class CompareWorker : public NanAsyncWorker {
       // Error
       argv[0] = Exception::Error(NanNew<String>(baton->err.data(), baton->err.size()));
     } else {
+      bool isEqual = baton->meanSquaredError == 0.0;
+
       // Compare Object
       Local<Object> info = NanNew<Object>();
       info->Set(NanNew<String>("meanSquaredError"), NanNew<Number>(baton->meanSquaredError));
+      info->Set(NanNew<String>("isEqual"), NanNew<Boolean>(isEqual));
       argv[1] = info;
     }
     delete baton;
