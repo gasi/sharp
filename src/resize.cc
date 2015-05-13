@@ -822,6 +822,8 @@ class ResizeWorker : public NanAsyncWorker {
         if (overlayImage == NULL) {
           (baton->err).append("Overlay input file has corrupt header");
           overlayImageType = ImageType::UNKNOWN;
+        } else {
+          vips_object_local(hook, overlayImage);
         }
       } else {
         (baton->err).append("Overlay input file is of an unsupported image format");
