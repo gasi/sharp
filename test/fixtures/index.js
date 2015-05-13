@@ -2,7 +2,6 @@
 
 var path = require('path');
 var assert = require('assert');
-var fileCompare = require('file-compare').compare;
 var sharp = require('../../index');
 
 var getPath = function(filename) {
@@ -139,14 +138,15 @@ module.exports = {
       throw new TypeError('`callback` must be a function');
     }
 
-    var HASH_ALGORITHM = 'sha1';
-    fileCompare(expectedImagePath, actualImagePath, HASH_ALGORITHM, function (isIdentical, error) {
-      if (!isIdentical || error) {
-        var cause = error || new Error('Actual image (' + actualImagePath + ') does not match expected image (' +  expectedImagePath + ').');
-        callback(cause);
-      } else {
-        callback();
+    sharp.compare(expectedImagePath, actualImagePath, function (error, info) {
+      if (error) return callback(error);
+
+      if (!info.isEqual) {
+        return callback(new Error('Expected images be equal. Mean squared error: ' + info.meanSquaredError + '.'));
       }
+
+      return callback();
     });
   }
+
 };
