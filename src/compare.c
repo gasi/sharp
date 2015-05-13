@@ -16,6 +16,8 @@
 #include <vips/vips.h>
 
 
+const int STATS_SUM2_COLUMN = 3;
+
 /*
   Compare images `actual` and `expected` and return mean square error.
  */
@@ -27,38 +29,38 @@ int Compare(VipsObject *context, VipsImage *actual, VipsImage *expected, double 
     return -1;
 
   VipsImage *difference;
+  VipsImage *absolute;
   VipsImage *stats;
   if (vips_subtract(actual, expected, &difference, NULL) ||
-      vips_stats(difference, &stats, NULL))
+      vips_abs(difference, &absolute, NULL) ||
+      vips_stats(absolute, &stats, NULL))
     return -1;
 
+  double *statsData = (double*) stats->data;
   vips_object_local(context, difference);
+  vips_object_local(context, absolute);
+  vips_object_local(context, stats);
 
   printf("bands: %d\n", stats->Bands);
-  printf("bandformat: %d\n", stats->BandFmt);
   printf("width: %d\n", stats->Xsize);
-  printf("height: %d\n", stats->Ysize);
-  printf("min: %f\n", (double) stats->data[0]);
-  printf("max: %f\n", (double) stats->data[1]);
-  printf("sum: %f\n", (double) stats->data[2]);
-  printf("sum2: %f\n", (double) stats->data[3]);
-  printf("avg: %f\n", (double) stats->data[4]);
-  printf("sd: %f\n", (double) stats->data[5]);
-  printf("xmin: %f\n", (double) stats->data[6]);
-  printf("ymin: %f\n", (double) stats->data[7]);
-  printf("xmax: %f\n", (double) stats->data[8]);
-  printf("ymax: %f\n", (double) stats->data[9]);
+  printf("height: %d\n\n", stats->Ysize);
+  printf("min: %f\n", statsData[0]);
+  printf("max: %f\n", statsData[1]);
+  printf("sum: %f\n", statsData[2]);
+  printf("sum2: %f\n", statsData[3]);
+  printf("avg: %f\n", statsData[4]);
+  printf("sd: %f\n", statsData[5]);
+  printf("xmin: %f\n", statsData[6]);
+  printf("ymin: %f\n", statsData[7]);
+  printf("xmax: %f\n", statsData[8]);
+  printf("ymax: %f\n\n", statsData[9]);
 
-  int numRows = stats->Bands + 1;
-  int numColumns = 10;
-  for (int row = 0; row < numRows; row++) {
-    for (int column = 0; column < numColumns; column++) {
-      printf("row %d column %d: %f\n", row, column, (double) stats->data[row * numColumns + column]);
-    }
-  }
+  int numValues = actual->Xsize * actual->Ysize * actual->Bands;
+  double sumOfSquares = statsData[STATS_SUM2_COLUMN];
+  double meanSquaredError = sumOfSquares / numValues;
 
-  // Return a reference to the standard deviation:
-  *out = (double) stats->data[5];
+  // Return a reference to the mean squared error:
+  *out = meanSquaredError;
 
   return 0;
 }
@@ -114,7 +116,7 @@ int main(int argc, char **argv) {
   }
   g_object_unref(handle);
 
-  printf("VIPS standard deviation: %f\n", out);
+  printf("%f\n", out);
 
   g_object_unref(actualInput);
   g_object_unref(expectedInput);
