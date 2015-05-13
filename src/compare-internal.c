@@ -15,15 +15,12 @@ int Compare(VipsObject *context, VipsImage *actual, VipsImage *expected, double 
     return -1;
 
   VipsImage *difference;
-  VipsImage *absolute;
   VipsImage *stats;
   if (vips_subtract(actual, expected, &difference, NULL) ||
-      vips_abs(difference, &absolute, NULL) ||
-      vips_stats(absolute, &stats, NULL))
+      vips_stats(difference, &stats, NULL))
     return -1;
 
   vips_object_local(context, difference);
-  vips_object_local(context, absolute);
   vips_object_local(context, stats);
 
   double *statsData = (double*) stats->data;
