@@ -132,11 +132,11 @@ module.exports = {
 
   assertEqual: function(actualImagePath, expectedImagePath, callback) {
     if (typeof actualImagePath !== 'string') {
-      throw new TypeError('`actualImagePath` must be a string');
+      throw new TypeError('`actualImagePath` must be a string; got ' + actualImagePath);
     }
 
     if (typeof expectedImagePath !== 'string') {
-      throw new TypeError('`expectedImagePath` must be a string');
+      throw new TypeError('`expectedImagePath` must be a string; got ' + expectedImagePath);
     }
 
     if (typeof callback !== 'function') {
