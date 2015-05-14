@@ -9,7 +9,7 @@ sharp.cache(0);
 
 
 // Constants
-var MAX_ALLOWED_MEAN_SQUARED_ERROR = 0.0005
+var MAX_ALLOWED_MEAN_SQUARED_ERROR = 0.0005;
 
 // Tests
 describe('sharp.compare', function() {

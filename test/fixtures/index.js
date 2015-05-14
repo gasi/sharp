@@ -6,7 +6,7 @@ var sharp = require('../../index');
 
 
 // Constants
-var MAX_ALLOWED_MEAN_SQUARED_ERROR = 0.0005
+var MAX_ALLOWED_MEAN_SQUARED_ERROR = 0.0005;
 
 // Helpers
 var getPath = function(filename) {

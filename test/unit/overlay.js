@@ -24,7 +24,7 @@ var getPaths = function(baseName, extension) {
     actual: actual,
     expected: expected,
     expectedMagick: expectedMagick
-  }
+  };
 };
 
 var assertEqual = function (paths, callback) {
@@ -41,11 +41,11 @@ var assertEqual = function (paths, callback) {
       if (info.meanSquaredError > MAX_ALLOWED_IMAGE_MAGICK_MEAN_SQUARED_ERROR) {
         return callback(new Error('Expected MSE against ImageMagick to be <= ' +
           MAX_ALLOWED_IMAGE_MAGICK_MEAN_SQUARED_ERROR + '. Actual: ' +
-          info.meanSquaredError))
+          info.meanSquaredError));
       }
 
       callback();
-    })
+    });
   });
 };
 
