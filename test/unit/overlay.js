@@ -21,7 +21,7 @@ describe('Overlays', function() {
       .toFile(actual, function (error) {
         if (error) return done(error);
 
-        fixtures.assertEqual(expected, actual, done);
+        fixtures.assertEqual(actual, expected, done);
       });
   });
 
@@ -35,7 +35,7 @@ describe('Overlays', function() {
       .toFile(actual, function (error) {
         if (error) return done(error);
 
-        fixtures.assertEqual(expected, actual, done);
+        fixtures.assertEqual(actual, expected, done);
       });
   });
 
@@ -54,7 +54,7 @@ describe('Overlays', function() {
           .toFile(actual, function (error) {
             if (error) return done(error);
 
-            fixtures.assertEqual(expected, actual, done);
+            fixtures.assertEqual(actual, expected, done);
           });
       });
   });
@@ -69,7 +69,7 @@ describe('Overlays', function() {
       .overlayWith(fixtures.inputPngOverlayLayer2)
       .toFile(actual, function (error, data, info) {
         if (error) return done(error);
-        fixtures.assertEqual(expected, actual, done);
+        fixtures.assertEqual(actual, expected, done);
       });
   });
 
@@ -83,7 +83,7 @@ describe('Overlays', function() {
       .overlayWith(fixtures.inputPngOverlayLayer2LowAlpha)
       .toFile(actual, function (error, data, info) {
         if (error) return done(error);
-        fixtures.assertEqual(expected, actual, done);
+        fixtures.assertEqual(actual, expected, done);
       });
   });
 
@@ -102,7 +102,7 @@ describe('Overlays', function() {
           .overlayWith(fixtures.inputPngOverlayLayer2LowAlpha)
           .toFile(actual, function (error, data, info) {
             if (error) return done(error);
-            fixtures.assertEqual(expected, actual, done);
+            fixtures.assertEqual(actual, expected, done);
           });
       });
   });

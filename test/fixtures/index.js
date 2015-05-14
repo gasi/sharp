@@ -130,20 +130,20 @@ module.exports = {
     });
   },
 
-  assertEqual: function(expectedImagePath, actualImagePath, callback) {
-    if (typeof expectedImagePath !== 'string') {
-      throw new TypeError('`expectedImagePath` must be a string');
-    }
-
+  assertEqual: function(actualImagePath, expectedImagePath, callback) {
     if (typeof actualImagePath !== 'string') {
       throw new TypeError('`actualImagePath` must be a string');
+    }
+
+    if (typeof expectedImagePath !== 'string') {
+      throw new TypeError('`expectedImagePath` must be a string');
     }
 
     if (typeof callback !== 'function') {
       throw new TypeError('`callback` must be a function');
     }
 
-    sharp.compare(expectedImagePath, actualImagePath, function (error, info) {
+    sharp.compare(actualImagePath, expectedImagePath, function (error, info) {
       if (error) return callback(error);
 
       var meanSquaredError = info.meanSquaredError;
