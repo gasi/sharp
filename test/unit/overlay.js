@@ -6,9 +6,6 @@ var sharp = require('../../index');
 
 sharp.cache(0);
 
-// Main
-
-// TODO: Enable comparison of `actual` against `expected`:
 
 describe('Overlays', function() {
   it('Overlay transparent PNG on solid background', function(done) {
