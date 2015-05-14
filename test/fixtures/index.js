@@ -151,7 +151,7 @@ module.exports = {
         return callback(new Error('Expected images be equal. Mean squared error: ' + meanSquaredError + '.'));
       }
 
-      return callback();
+      return callback(null, info);
     });
   }
 
