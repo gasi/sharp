@@ -419,7 +419,7 @@ Merge alpha transparency channel, if any, with `background`.
 
 #### Experimental: overlayWith(filename)
 
-**Experimental:** Composite image with transparent overlay. Both input and overlay image must be RGBA.
+**Experimental:** Composite image with transparent overlay. Both input and overlay image must be RGBA and their dimensions must match.
 
 #### rotate([angle])
 
