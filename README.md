@@ -673,7 +673,7 @@ var counters = sharp.counters(); // { queue: 2, process: 4 }
 `callback` is called with two arguments `(err, info)` where:
 
 * `err` contains an error message, if any.
-* `info` contains the info about the difference between the two images such as `isEqual` (Boolean), `meanSquaredError` (Number).
+* `info` contains the info about the difference between the two images such as `isEqual` (Boolean), `meanSquaredError` (Number; present iff `status='success'`, otherwise `undefined`), and `status` (String; one of `success`, `mismatchedDimensions`, `mismatchedBands`, `mismatchedType`).
 
 This function can be useful for comparing test output images against reference images.
 

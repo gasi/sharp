@@ -27,10 +27,13 @@ struct CompareBaton {
   std::string fileIn2;
 
   // Output
+  bool isEqual;
   float meanSquaredError;
   std::string err;
+  std::string status;
 
   CompareBaton():
+    isEqual(false),
     meanSquaredError(0.0) {}
 };
 
@@ -82,11 +85,28 @@ class CompareWorker : public NanAsyncWorker {
 
     if (image1 != NULL && imageType1 != ImageType::UNKNOWN && image2 != NULL && imageType2 != ImageType::UNKNOWN) {
       double meanSquaredError;
-      if (Compare(hook, image1, image2, &meanSquaredError)) {
-        (baton->err).append("Failed to compare two images");
-        return Error();
+
+      baton->meanSquaredError = -1.0;
+      baton->isEqual = FALSE;
+
+      if (image1->Type != image2->Type) {
+        baton->status = "mismatchedTypes";
+      } else if (image1->Bands != image2->Bands) {
+        baton->status = "mismatchedBands";
+      } else if (image1->Xsize != image2->Xsize || image1->Ysize != image2->Ysize) {
+        baton->status = "mismatchedDimensions";
+      } else {
+        if (Compare(hook, image1, image2, &meanSquaredError)) {
+          (baton->err).append("Failed to compare two images");
+          return Error();
+        } else {
+          baton->status = "success";
+          baton->meanSquaredError = meanSquaredError;
+          baton->isEqual = meanSquaredError == 0.0;
+        }
       }
-      baton->meanSquaredError = meanSquaredError;
+    } else {
+      return Error();
     }
 
     CleanUp();
@@ -109,12 +129,13 @@ class CompareWorker : public NanAsyncWorker {
       // Error
       argv[0] = Exception::Error(NanNew<String>(baton->err.data(), baton->err.size()));
     } else {
-      bool isEqual = baton->meanSquaredError == 0.0;
-
       // Compare Object
       Local<Object> info = NanNew<Object>();
-      info->Set(NanNew<String>("meanSquaredError"), NanNew<Number>(baton->meanSquaredError));
-      info->Set(NanNew<String>("isEqual"), NanNew<Boolean>(isEqual));
+      info->Set(NanNew<String>("isEqual"), NanNew<Boolean>(baton->isEqual));
+      info->Set(NanNew<String>("status"), NanNew<String>(baton->status));
+      if (baton->meanSquaredError >= 0.0) {
+        info->Set(NanNew<String>("meanSquaredError"), NanNew<Number>(baton->meanSquaredError));
+      }
       argv[1] = info;
     }
     delete baton;
