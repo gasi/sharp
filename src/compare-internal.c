@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <vips/vips.h>
 
+#include "composite.h"
 
 const int STATS_SUM2_COLUMN = 3;
 
 /*
-  Compare images `actual` and `expected` and return mean square error.
+  Compare images `actual` and `expected` and return mean squared error (MSE).
  */
 int Compare(VipsObject *context, VipsImage *actual, VipsImage *expected, double *out) {
   if (actual->Bands != expected->Bands)
