@@ -61,6 +61,8 @@ class CompareWorker : public NanAsyncWorker {
       if (image1 == NULL) {
         (baton->err).append("Input file 1 has corrupt header");
         imageType1 = ImageType::UNKNOWN;
+      } else {
+        vips_object_local(hook, image1);
       }
     } else {
       (baton->err).append("Input file 1 is of an unsupported image format");
@@ -71,6 +73,8 @@ class CompareWorker : public NanAsyncWorker {
       if (image2 == NULL) {
         (baton->err).append("Input file 2 has corrupt header");
         imageType2 = ImageType::UNKNOWN;
+      } else {
+        vips_object_local(hook, image2);
       }
     } else {
       (baton->err).append("Input file 2 is of an unsupported image format");
@@ -83,9 +87,15 @@ class CompareWorker : public NanAsyncWorker {
         return Error();
       }
       baton->meanSquaredError = meanSquaredError;
-      g_object_unref(image1);
-      g_object_unref(image2);
     }
+
+    CleanUp();
+  }
+
+  void CleanUp() {
+    // Clean up any dangling image references
+    g_object_unref(hook);
+
     // Clean up
     vips_error_clear();
     vips_thread_shutdown();
@@ -121,11 +131,8 @@ class CompareWorker : public NanAsyncWorker {
   void Error() {
     // Get libvips' error message
     (baton->err).append(vips_error_buffer());
-    // Clean up any dangling image references
-    g_object_unref(hook);
-    // Clean up libvips' per-request data and threads
-    vips_error_clear();
-    vips_thread_shutdown();
+
+    CleanUp();
   }
 
  private:
