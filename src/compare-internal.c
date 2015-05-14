@@ -15,9 +15,18 @@ int Compare(VipsObject *context, VipsImage *actual, VipsImage *expected, double 
   if (actual->Type != expected->Type)
     return -1;
 
+  VipsImage *actualPremultiplied;
+  VipsImage *expectedPremultiplied;
+  if (Premultiply(context, actual, &actualPremultiplied) ||
+      Premultiply(context, expected, &expectedPremultiplied))
+    return -1;
+
+  vips_object_local(context, actualPremultiplied);
+  vips_object_local(context, expectedPremultiplied);
+
   VipsImage *difference;
   VipsImage *stats;
-  if (vips_subtract(expected, actual, &difference, NULL) ||
+  if (vips_subtract(expectedPremultiplied, actualPremultiplied, &difference, NULL) ||
       vips_stats(difference, &stats, NULL))
     return -1;
 
