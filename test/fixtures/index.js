@@ -4,6 +4,11 @@ var path = require('path');
 var assert = require('assert');
 var sharp = require('../../index');
 
+
+// Constants
+var MAX_ALLOWED_MEAN_SQUARED_ERROR = 0.0005
+
+// Helpers
 var getPath = function(filename) {
   return path.join(__dirname, filename);
 };
@@ -141,8 +146,9 @@ module.exports = {
     sharp.compare(expectedImagePath, actualImagePath, function (error, info) {
       if (error) return callback(error);
 
-      if (!info.isEqual) {
-        return callback(new Error('Expected images be equal. Mean squared error: ' + info.meanSquaredError + '.'));
+      var meanSquaredError = info.meanSquaredError;
+      if (typeof meanSquaredError !== 'undefined' && meanSquaredError > MAX_ALLOWED_MEAN_SQUARED_ERROR) {
+        return callback(new Error('Expected images be equal. Mean squared error: ' + meanSquaredError + '.'));
       }
 
       return callback();
