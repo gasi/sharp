@@ -497,6 +497,7 @@ class ResizeWorker : public NanAsyncWorker {
         return Error();
       }
 
+      vips_object_local(hook, imagePremultiplied);
       image = imagePremultiplied;
     }
 
@@ -877,6 +878,7 @@ class ResizeWorker : public NanAsyncWorker {
         return Error();
       }
 
+      vips_object_local(hook, imageUnpremultiplied);
       image = imageUnpremultiplied;
     }
 
