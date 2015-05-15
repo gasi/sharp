@@ -2,9 +2,18 @@
 #include <vips/vips.h>
 
 
+// Constants
 const int ALPHA_BAND_INDEX = 3;
 const int NUM_COLOR_BANDS = 3;
 
+// TODO: Copied from `common.cc`. Deduplicate once this becomes a C++ module.
+int HasAlpha(VipsImage *image) {
+  return (
+    (image->Bands == 2 && image->Type == VIPS_INTERPRETATION_B_W) ||
+    (image->Bands == 4 && image->Type != VIPS_INTERPRETATION_CMYK) ||
+    (image->Bands == 5 && image->Type == VIPS_INTERPRETATION_CMYK)
+  );
+}
 
 /*
   Composite images `src` and `dst` with premultiplied alpha channel and output
@@ -113,6 +122,11 @@ int Composite(VipsObject *context, VipsImage *srcPremultiplied, VipsImage *dstPr
 int Premultiply(VipsObject *context, VipsImage *image, VipsImage **out) {
   VipsImage *imagePremultiplied;
 
+  // Trivial case: Copy images without alpha channel:
+  if (!HasAlpha(image)) {
+    return vips_image_write(image, *out);
+  }
+
 #if (VIPS_MAJOR_VERSION >= 9 || (VIPS_MAJOR_VERSION >= 8 && VIPS_MINOR_VERSION >= 1))
 
   if (vips_premultiply(image, &imagePremultiplied, NULL))
@@ -154,6 +168,11 @@ int Premultiply(VipsObject *context, VipsImage *image, VipsImage **out) {
  */
 int Unpremultiply(VipsObject *context, VipsImage *image, VipsImage **out) {
   VipsImage *imageUnpremultiplied;
+
+  // Trivial case: Copy images without alpha channel:
+  if (!HasAlpha(image)) {
+    return vips_image_write(image, *out);
+  }
 
 #if (VIPS_MAJOR_VERSION >= 9 || (VIPS_MAJOR_VERSION >= 8 && VIPS_MINOR_VERSION >= 1))
 
