@@ -25,32 +25,35 @@ int Composite(VipsObject *context, VipsImage *srcPremultiplied, VipsImage *dstPr
 
   // Extract RGB bands:
   VipsImage *srcRGBPremultiplied;
-  VipsImage *dstRGBPremultiplied;
-  if (vips_extract_band(srcPremultiplied, &srcRGBPremultiplied, 0, "n", NUM_COLOR_BANDS, NULL) ||
-      vips_extract_band(dstPremultiplied, &dstRGBPremultiplied, 0, "n", NUM_COLOR_BANDS, NULL))
+  if (vips_extract_band(srcPremultiplied, &srcRGBPremultiplied, 0, "n", NUM_COLOR_BANDS, NULL))
     return -1;
-
   vips_object_local(context, srcRGBPremultiplied);
+
+  VipsImage *dstRGBPremultiplied;
+  if (vips_extract_band(dstPremultiplied, &dstRGBPremultiplied, 0, "n", NUM_COLOR_BANDS, NULL))
+    return -1;
   vips_object_local(context, dstRGBPremultiplied);
 
   // Extract alpha bands:
   VipsImage *srcAlpha;
-  VipsImage *dstAlpha;
-  if (vips_extract_band(srcPremultiplied, &srcAlpha, ALPHA_BAND_INDEX, "n", 1, NULL) ||
-      vips_extract_band(dstPremultiplied, &dstAlpha, ALPHA_BAND_INDEX, "n", 1, NULL))
+  if (vips_extract_band(srcPremultiplied, &srcAlpha, ALPHA_BAND_INDEX, "n", 1, NULL))
     return -1;
-
   vips_object_local(context, srcAlpha);
+
+  VipsImage *dstAlpha;
+  if (vips_extract_band(dstPremultiplied, &dstAlpha, ALPHA_BAND_INDEX, "n", 1, NULL))
+    return -1;
   vips_object_local(context, dstAlpha);
 
   // Compute normalized input alpha channels:
   VipsImage *srcAlphaNormalized;
-  VipsImage *dstAlphaNormalized;
-  if (vips_linear1(srcAlpha, &srcAlphaNormalized, 1.0 / 255.0, 0.0, NULL) ||
-      vips_linear1(dstAlpha, &dstAlphaNormalized, 1.0 / 255.0, 0.0, NULL))
+  if (vips_linear1(srcAlpha, &srcAlphaNormalized, 1.0 / 255.0, 0.0, NULL))
     return -1;
-
   vips_object_local(context, srcAlphaNormalized);
+
+  VipsImage *dstAlphaNormalized;
+  if (vips_linear1(dstAlpha, &dstAlphaNormalized, 1.0 / 255.0, 0.0, NULL))
+    return -1;
   vips_object_local(context, dstAlphaNormalized);
 
   //
@@ -66,15 +69,18 @@ int Composite(VipsObject *context, VipsImage *srcPremultiplied, VipsImage *dstPr
   //                 ^^^^^^^^^^^^^^^^^^^
   //                         t1
   VipsImage *t0;
-  VipsImage *t1;
-  VipsImage *outAlphaNormalized;
-  if (vips_linear1(srcAlphaNormalized, &t0, -1.0, 1.0, NULL) ||
-      vips_multiply(dstAlphaNormalized, t0, &t1, NULL) ||
-      vips_add(srcAlphaNormalized, t1, &outAlphaNormalized, NULL))
+  if (vips_linear1(srcAlphaNormalized, &t0, -1.0, 1.0, NULL))
     return -1;
-
   vips_object_local(context, t0);
+
+  VipsImage *t1;
+  if (vips_multiply(dstAlphaNormalized, t0, &t1, NULL))
+    return -1;
   vips_object_local(context, t1);
+
+  VipsImage *outAlphaNormalized;
+  if (vips_add(srcAlphaNormalized, t1, &outAlphaNormalized, NULL))
+    return -1;
   vips_object_local(context, outAlphaNormalized);
 
   //
@@ -90,19 +96,19 @@ int Composite(VipsObject *context, VipsImage *srcPremultiplied, VipsImage *dstPr
   // externally.
   //
   VipsImage *t2;
-  VipsImage *outRGBPremultiplied;
-  if (vips_multiply(dstRGBPremultiplied, t0, &t2, NULL) ||
-      vips_add(srcRGBPremultiplied, t2, &outRGBPremultiplied, NULL))
+  if (vips_multiply(dstRGBPremultiplied, t0, &t2, NULL))
     return -1;
-
   vips_object_local(context, t2);
+
+  VipsImage *outRGBPremultiplied;
+  if (vips_add(srcRGBPremultiplied, t2, &outRGBPremultiplied, NULL))
+    return -1;
   vips_object_local(context, outRGBPremultiplied);
 
   // Denormalize output alpha channel:
   VipsImage *outAlpha;
   if (vips_linear1(outAlphaNormalized, &outAlpha, 255.0, 0.0, NULL))
     return -1;
-
   vips_object_local(context, outAlpha);
 
   // Combine RGB and alpha channel into output image:
@@ -138,21 +144,27 @@ int Premultiply(VipsObject *context, VipsImage *image, VipsImage **out) {
     return -1;
 
   VipsImage *imageRGB;
-  VipsImage *imageAlpha;
-  VipsImage *imageAlphaNormalized;
-  VipsImage *imageRGBPremultiplied;
-
-  if (vips_extract_band(image, &imageRGB, 0, "n", NUM_COLOR_BANDS, NULL) ||
-      vips_extract_band(image, &imageAlpha, ALPHA_BAND_INDEX, "n", 1, NULL) ||
-      vips_linear1(imageAlpha, &imageAlphaNormalized, 1.0 / 255.0, 0.0, NULL) ||
-      vips_multiply(imageRGB, imageAlphaNormalized, &imageRGBPremultiplied, NULL) ||
-      vips_bandjoin2(imageRGBPremultiplied, imageAlpha, &imagePremultiplied, NULL))
+  if (vips_extract_band(image, &imageRGB, 0, "n", NUM_COLOR_BANDS, NULL))
     return -1;
-
   vips_object_local(context, imageRGB);
+
+  VipsImage *imageAlpha;
+  if (vips_extract_band(image, &imageAlpha, ALPHA_BAND_INDEX, "n", 1, NULL))
+    return -1;
   vips_object_local(context, imageAlpha);
+
+  VipsImage *imageAlphaNormalized;
+  if (vips_linear1(imageAlpha, &imageAlphaNormalized, 1.0 / 255.0, 0.0, NULL))
+    return -1;
   vips_object_local(context, imageAlphaNormalized);
+
+  VipsImage *imageRGBPremultiplied;
+  if (vips_multiply(imageRGB, imageAlphaNormalized, &imageRGBPremultiplied, NULL))
+    return -1;
   vips_object_local(context, imageRGBPremultiplied);
+
+  if (vips_bandjoin2(imageRGBPremultiplied, imageAlpha, &imagePremultiplied, NULL))
+    return -1;
 
 #endif
 
@@ -184,21 +196,29 @@ int Unpremultiply(VipsObject *context, VipsImage *image, VipsImage **out) {
   if (image->Bands != 4)
     return -1;
 
-  VipsImage *imageAlphaTransformed;
-  VipsImage *imageAlphaNormalizedTransformed;
   VipsImage *imageRGBPremultipliedTransformed;
+  if (vips_extract_band(image, &imageRGBPremultipliedTransformed, 0, "n", NUM_COLOR_BANDS, NULL))
+    return -1;
+  vips_object_local(context, imageRGBPremultipliedTransformed);
+
+  VipsImage *imageAlphaTransformed;
+  if (vips_extract_band(image, &imageAlphaTransformed, ALPHA_BAND_INDEX, "n", 1, NULL))
+    return -1;
+  vips_object_local(context, imageAlphaTransformed);
+
+  VipsImage *imageAlphaNormalizedTransformed;
+  if (vips_linear1(imageAlphaTransformed, &imageAlphaNormalizedTransformed, 1.0 / 255.0, 0.0, NULL))
+    return -1;
+  vips_object_local(context, imageAlphaNormalizedTransformed);
+
   VipsImage *imageRGBUnpremultipliedTransformed;
-  if (vips_extract_band(image, &imageRGBPremultipliedTransformed, 0, "n", NUM_COLOR_BANDS, NULL) ||
-      vips_extract_band(image, &imageAlphaTransformed, ALPHA_BAND_INDEX, "n", 1, NULL) ||
-      vips_linear1(imageAlphaTransformed, &imageAlphaNormalizedTransformed, 1.0 / 255.0, 0.0, NULL) ||
-      vips_divide(imageRGBPremultipliedTransformed, imageAlphaNormalizedTransformed, &imageRGBUnpremultipliedTransformed, NULL) ||
-      vips_bandjoin2(imageRGBUnpremultipliedTransformed, imageAlphaTransformed, &imageUnpremultiplied, NULL))
+  if (vips_divide(imageRGBPremultipliedTransformed, imageAlphaNormalizedTransformed, &imageRGBUnpremultipliedTransformed, NULL))
+    return -1;
+  vips_object_local(context, imageRGBUnpremultipliedTransformed);
+
+  if (vips_bandjoin2(imageRGBUnpremultipliedTransformed, imageAlphaTransformed, &imageUnpremultiplied, NULL))
     return -1;
 
-  vips_object_local(context, imageRGBPremultipliedTransformed);
-  vips_object_local(context, imageAlphaTransformed);
-  vips_object_local(context, imageAlphaNormalizedTransformed);
-  vips_object_local(context, imageRGBUnpremultipliedTransformed);
 
 #endif
 
